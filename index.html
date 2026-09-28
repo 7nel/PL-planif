@@ -1,4 +1,4 @@
-<!DOCTYPE html><html><head><meta charset='utf-8'><title>GC planif'</title></head><body><script>
+<!DOCTYPE html><html><head><meta charset='utf-8'><title>PL-planif'</title></head><body><script>
 function boot(initialData) {
   "use strict";
 
@@ -695,7 +695,7 @@ function boot(initialData) {
       if (icon192) icons.push({ src: icon192, sizes: "192x192", type: "image/png", purpose: "any maskable" });
       if (icon512) icons.push({ src: icon512, sizes: "512x512", type: "image/png", purpose: "any maskable" });
       var manifest = {
-        name: "GC planif'", short_name: "GC planif'", start_url: ".", scope: ".",
+        name: "PL-planif'", short_name: "PL-planif'", start_url: ".", scope: ".",
         display: "standalone", background_color: "#eff2f0", theme_color: "#2f6f63", icons: icons
       };
       var manifestUrl = "data:application/manifest+json," + encodeURIComponent(JSON.stringify(manifest));
@@ -712,7 +712,7 @@ function boot(initialData) {
       meta("theme-color", "#2f6f63");
       meta("mobile-web-app-capable", "yes");
       meta("apple-mobile-web-app-capable", "yes");
-      meta("apple-mobile-web-app-title", "GC planif'");
+      meta("apple-mobile-web-app-title", "PL-planif'");
       meta("apple-mobile-web-app-status-bar-style", "default");
       if (icon192) {
         var appleIcon = document.createElement("link");
@@ -1912,7 +1912,7 @@ function boot(initialData) {
           '<div class="home-title">Bienvenue</div>' +
           '<button class="help-toggle" id="app-help-toggle" type="button" title="À propos de l’application" aria-label="À propos de l’application">?</button>' +
         "</div>" +
-        '<p class="editor-hint app-help" id="app-help" hidden>GC planif’ sert à préparer et lancer le déroulé minuté d’une séance : une suite d’étapes (travail, pause, jeu…) avec leur durée, un minuteur qui les enchaîne automatiquement, et des outils annexes (tirage au sort, feu de circulation, sonomètre, émotions). Chaque programme créé ci-dessous est indépendant : vous pouvez en garder plusieurs, les modifier séparément et rouvrir celui qu’il vous faut.</p>' +
+        '<p class="editor-hint app-help" id="app-help" hidden>PL-planif’ sert à préparer et lancer le déroulé minuté d’une séance : une suite d’étapes (travail, pause, jeu…) avec leur durée, un minuteur qui les enchaîne automatiquement, et des outils annexes (tirage au sort, feu de circulation, sonomètre, émotions). Chaque programme créé ci-dessous est indépendant : vous pouvez en garder plusieurs, les modifier séparément et rouvrir celui qu’il vous faut.</p>' +
         '<div class="home-actions">' +
           '<button class="action-btn primary" id="home-new">Créer un nouveau programme</button>' +
           '<button class="action-btn" id="home-new-checklist">' + svg("liste", "icon-mini") + " Créer une checklist (sans minutage)</button>" +
@@ -1935,7 +1935,7 @@ function boot(initialData) {
           "</div>" +
           '<div class="home-action-col">' +
             '<button class="action-btn" id="home-install">' + svg("download", "icon-mini") + " Installer l’app</button>" +
-            '<p class="editor-hint install-help-base">Installe GC planif’ comme une application, dans sa propre fenêtre (Chrome ou Edge).</p>' +
+            '<p class="editor-hint install-help-base">Installe PL-planif’ comme une application, dans sa propre fenêtre (Chrome ou Edge).</p>' +
             '<div class="install-help" id="install-help" hidden>' +
               "Pas d’installation automatique possible ici. Pour installer cette page comme une application : menu <strong>⋮</strong> du navigateur (Chrome ou Edge, en haut à droite) → <strong>Plus d’outils</strong> → <strong>Créer un raccourci…</strong> → cocher <strong>« Ouvrir en tant que fenêtre »</strong> → Créer. " +
               "Sur Mac, une fois l’app ouverte : clic droit (ou <strong>Ctrl</strong> + clic) sur son icône dans le <strong>Dock</strong> → <strong>Options</strong> → <strong>Garder dans le Dock</strong>, pour la retrouver directement au démarrage sans repasser par le navigateur." +
