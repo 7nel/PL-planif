@@ -1,7 +1,5 @@
 # PL-planif’
 
-Créé par Pauline Lentes pour la classe ressource (CO, Valais).
-
 Outil de classe et minuteur — page web unique, sans compte ni serveur : tout est enregistré localement dans le navigateur (aucune donnée n'est envoyée où que ce soit).
 
 Pensé pour un enseignant ou un·e éducateur·rice spécialisé·e qui prépare et anime le déroulé minuté d'une séance (individuelle, petit groupe ou classe) : étapes chronométrées, vue à projeter devant les élèves, tâches et devoirs, outils annexes (tirage au sort, feu de circulation, sonomètre, émotions, groupes d'élèves...).
