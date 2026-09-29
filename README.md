@@ -1,4 +1,4 @@
-# PL-planif'
+# PL-planif’
 
 Outil de classe et minuteur — page web unique, sans compte ni serveur : tout est enregistré localement dans le navigateur (aucune donnée n'est envoyée où que ce soit).
 
