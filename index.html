@@ -16,6 +16,7 @@ function boot(initialData) {
       --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
       --pause-accent: #b97a3d;
       --pause-soft: color-mix(in srgb, var(--pause-accent) 22%, var(--surface));
+      --pause-strong: color-mix(in srgb, var(--pause-accent) 80%, #000); /* fond de bouton d'une étape « Pause » : assez foncé pour un libellé clair (≥ 4,5:1) */
       --red: #b6503f;
       --red-soft: color-mix(in srgb, var(--red) 20%, var(--surface));
       --border: #d7ddda;
@@ -27,6 +28,7 @@ function boot(initialData) {
         --bg: #182422; --surface: #202f2c; --surface-alt: #24322f; --ink: #eaf1ee;
         --muted: #9fb0ac; --accent: #6fbfae;
         --pause-accent: #e3a768; --red: #d98070; --border: #33443f;
+        --pause-strong: var(--pause-accent);
         --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 28px rgba(0,0,0,0.35);
       }
     }
@@ -34,6 +36,7 @@ function boot(initialData) {
       --bg: #182422; --surface: #202f2c; --surface-alt: #24322f; --ink: #eaf1ee;
       --muted: #9fb0ac; --accent: #6fbfae;
       --pause-accent: #e3a768; --red: #d98070; --border: #33443f;
+      --pause-strong: var(--pause-accent);
       --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 28px rgba(0,0,0,0.35);
     }
 
@@ -80,6 +83,16 @@ function boot(initialData) {
     .ctrl-btn.labeled { width: auto; min-width: 48px; padding-inline: 14px 16px; gap: 8px; font: inherit; font-weight: 700; font-size: 1rem; }
     .ctrl-btn.primary { background: var(--accent); color: var(--surface); border-color: transparent; }
     .ctrl-btn.is-active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+    .ctrl-btn:disabled { opacity: 0.45; cursor: default; }
+    .ctrl-btn:disabled:hover { transform: none; }
+    /* Démarrer / Pause / Reprendre : largeur de libellé fixe, pour que les boutons voisins ne se décalent pas quand le libellé change */
+    #btn-play .ctrl-label { display: inline-block; text-align: left; }
+    #btn-play .ctrl-label::before, #btn-play .ctrl-label::after { display: block; height: 0; overflow: hidden; visibility: hidden; }
+    #btn-play .ctrl-label::before { content: "Démarrer"; }
+    #btn-play .ctrl-label::after { content: "Reprendre"; }
+    /* « Suivant » : icône seule en vue Programme, écrit en toutes lettres en vue projetée (classe posée par showOnly()) */
+    #btn-skip .ctrl-label { display: none; }
+    #btn-skip.labeled .ctrl-label { display: inline; }
     /* menu « Plus » : accueil, guide, apparence, son et « Recommencer » (celui-ci, séparé et en rouge, loin de « Étape suivante ») */
     .more-wrap { position: relative; }
     .more-menu {
@@ -97,6 +110,10 @@ function boot(initialData) {
     .more-item:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
     .more-item svg { width: 22px; height: 22px; flex: none; }
     .more-item.danger { color: var(--red); margin-top: 6px; border-top: 1px solid var(--border); border-radius: 0 0 12px 12px; padding-top: 10px; }
+    .more-item:disabled { opacity: 0.45; cursor: default; }
+    .more-item:disabled:hover { background: transparent; }
+    .more-menu.drop-up { top: auto; bottom: calc(100% + 8px); } /* menu d'une carte en bas de liste : s'ouvre vers le haut */
+    .card-menu { min-width: min(330px, calc(100vw - 32px)); } /* « Remettre le minuteur au début » tient sur une ligne */
 
     .active-card {
       position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
@@ -117,6 +134,16 @@ function boot(initialData) {
        (le texte posé dessus perdrait en contraste). À 0 % il est hors de la carte, donc invisible. */
     .card-fill::after { content: ""; position: absolute; top: 0; bottom: 0; right: 0; width: 6px; background: var(--accent); }
     .active-card.is-pause .card-fill::after { background: var(--pause-accent); }
+    /* Texte de la carte-jauge : toujours posé sur une plaque opaque (--surface), jamais directement sur le
+       remplissage. Sans cela, la teinte change sous le texte à mesure que le temps passe (contraste
+       insuffisant une fois la zone remplie) et le bord avant du remplissage traverse les lettres. Avec les
+       plaques, le contraste est celui du texte sur --surface, le même de 0 % à 100 %, en clair comme en
+       sombre ; le remplissage et son bord passent derrière et restent visibles tout autour. */
+    .active-card .active-top, .active-card .timer-row, .active-card .tasks-block-label,
+    .active-card .card-content > .back-link, .active-card .jump-row, .active-card .projected-timer-hidden-note {
+      background: var(--surface); border-radius: 12px; padding: 4px 10px; width: fit-content; max-width: 100%;
+    }
+    .active-card .task-chip { background: var(--surface); }
 
     .card-content { position: relative; z-index: 1; display: flex; flex-direction: column; gap: clamp(4px, 1vh, 10px); min-height: 0; overflow: auto; }
     .active-top { display: flex; align-items: center; gap: 8px; }
@@ -154,7 +181,7 @@ function boot(initialData) {
       font-family: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer;
     }
     .action-btn.primary { background: var(--accent); color: var(--surface); border-color: transparent; }
-    .active-card.is-pause .action-btn.primary { background: var(--pause-accent); }
+    .active-card.is-pause .action-btn.primary { background: var(--pause-strong); }
     .action-btn svg { width: 14px; height: 14px; }
     .action-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
     .action-btn:disabled { opacity: 0.5; cursor: default; }
@@ -202,6 +229,8 @@ function boot(initialData) {
     .has-step-detail { cursor: pointer; }
     .chip.has-step-detail { cursor: pointer; }
     .chip.has-step-detail:hover, .active-card.has-step-detail:hover { border-color: var(--accent); }
+    .chip.has-step-detail:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    .chip.has-step-detail { min-height: 44px; }
 
     /* help guide — reuses the step-modal-backdrop/.step-modal overlay (same "big scrollable
        reference document" pattern), with its own body class that scrolls internally so the
@@ -233,7 +262,7 @@ function boot(initialData) {
     #tools-wrap, #stage { overflow-x: hidden; }
     #tools-wrap .editor, #stage .active-card, #stage .done-card { overflow-x: hidden; overflow-y: auto; }
     .editor h3 { margin: 0; font-size: 1rem; }
-    .editor-hint { color: var(--muted); font-size: 0.9rem; margin: -6px 0 4px; }
+    .editor-hint { color: var(--muted); font-size: 0.9rem; margin: -6px 0 4px; max-width: 72ch; } /* longueur de ligne bornée (repère typographique usuel : 45 à 75 caractères) */
     .editor-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .back-link {
       display: flex; align-items: center; gap: 6px; border: none; background: none; color: var(--muted);
@@ -323,8 +352,11 @@ function boot(initialData) {
       .controls { gap: 8px 10px; }
       .ctrl-group { gap: 6px; }
       .ctrl-btn.labeled { padding-inline: 10px 12px; gap: 6px; font-size: 0.95rem; }
-      /* barre en 2 rangées au lieu de 3 : Démarrer, Suivant et Plus ensemble, les vues (plus larges) en dessous */
-      .ctrl-group[aria-label="Vues"] { order: 1; }
+      /* éditeur : le pictogramme puis le nom de l'étape prennent chacun toute la largeur (sinon le nom est coupé à ~140 px) */
+      .editor-row select.row-icon { max-width: none; flex: 1 1 100%; }
+      .editor-row input.row-label { flex: 1 1 100%; }
+      /* barre en 2 rangées au lieu de 3 : Démarrer, Suivant et Plus ensemble, les vues (plus larges) en dessous.
+         C'est placeMoreMenu() qui déplace « Plus » dans le DOM (pas « order » : la tabulation suit l'ordre visible). */
       .controls { justify-content: space-between; }
     }
     @media (max-width: 640px) { .footer-keys { display: none; } } /* raccourcis clavier : inutiles sur téléphone */
@@ -373,13 +405,13 @@ function boot(initialData) {
     .profile-card-title { font-weight: 700; }
     .profile-card-meta { font-size: 0.9rem; color: var(--muted); }
     .profile-card-actions { display: flex; align-items: center; gap: 8px; }
-    .profile-card-order { display: flex; flex-direction: column; gap: 2px; }
     .profile-empty { color: var(--muted); padding: 10px 2px; }
     .home-actions-columns { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px; }
     .home-action-col { flex: 1 1 240px; min-width: 220px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
     .home-action-col .editor-hint { margin: 0; }
-    .home-backup-status { font-size: 0.9rem; opacity: 0.75; }
-    .install-help-base { font-size: 0.9rem; opacity: 0.75; }
+    /* textes d'aide en --muted plein : l'opacité à 75 % les faisait descendre sous 4,5:1 (3,3:1 en clair) */
+    .home-backup-status { font-size: 0.9rem; }
+    .install-help-base { font-size: 0.9rem; }
     svg.icon-mini { width: 10px !important; height: 10px !important; }
 
     /* tools menu (overlay panel: sits alongside the running timer, doesn't hide it) */
@@ -434,9 +466,19 @@ function boot(initialData) {
       max-height: clamp(200px, 38vh, 460px); align-items: stretch;
     }
     .projected-timer { flex: 1 1 0; min-width: 0; min-height: 0; overflow: hidden; }
-    .projected-timer .active-card { padding: clamp(10px, 2vh, 22px) !important; overflow: auto; }
-    .projected-timer-head { display: flex; align-items: center; justify-content: center; gap: clamp(10px, 2vw, 24px); width: 100%; }
-    .projected-timer-head .timer-row { flex: 0 0 auto; }
+    /* marge verticale généreuse : le remplissage reste visible au-dessus et au-dessous de la plaque du décompte */
+    .projected-timer .active-card { padding: clamp(14px, 3.6vh, 40px) clamp(10px, 2vh, 22px) !important; overflow: auto; }
+    /* plaque opaque centrée (voir « Texte de la carte-jauge » plus haut) : statut au-dessus, décompte en dessous */
+    .projected-timer-head {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+      width: fit-content; max-width: 100%; background: var(--surface); border-radius: 20px;
+      padding: clamp(4px, 1vh, 12px) clamp(16px, 3vw, 44px);
+    }
+    .projected-timer-head .timer-row, .projected-timer-head .projected-timer-hidden-note { flex: 0 0 auto; background: none; padding: 0; }
+    .projected-timer-head .timer-row { flex-wrap: wrap; justify-content: center; max-width: 100%; } /* écran étroit : « restant » passe sous le chiffre au lieu d'être coupé */
+    /* statut du décompte (« Prêt », « En cours », « En pause », « Terminé ») : un mot, lisible de loin */
+    .timer-status { color: var(--ink); font-weight: 700; font-size: clamp(1rem, 2.6vh, 1.4rem); }
+    .presenting-view .timer-status { font-size: clamp(1.2rem, 3.6vh, 2.1rem); }
     .projected-timer-hidden-note { color: var(--muted); font-weight: 700; font-size: clamp(0.9rem, 1.8vh, 1.1rem); }
     .projected-tool-slot {
       flex: 1 1 0; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
@@ -463,7 +505,7 @@ function boot(initialData) {
       .projected-top-row { flex-wrap: wrap; max-height: none; }
       .projected-timer, .projected-tool-slot { flex: 1 1 260px; max-height: 40vh; }
     }
-    .projected-timer .countdown { font-size: clamp(2.6rem, 11vh, 6.2rem); }
+    .projected-timer .countdown { font-size: clamp(2.6rem, 11vh, 6.2rem); line-height: 1; }
     .projected-timer .countdown-label { font-size: clamp(1rem, 2vh, 1.2rem); }
     .projected-columns {
       flex: 1 1 auto; min-height: 0; display: grid;
@@ -487,13 +529,14 @@ function boot(initialData) {
     .projected-homework-panel .task-chip { font-size: clamp(0.9rem, 1.7vh, 1.15rem); }
     .projected-homework-panel .add-row-btn { flex: 0 0 auto; padding: clamp(6px, 1vh, 10px) 14px; font-size: clamp(0.9rem, 1.3vh, 0.9rem); }
     .projected-info-panel { display: flex; flex-direction: column; }
-    /* mode présentation : ce que voient les élèves, sans champs de saisie ni boutons d'édition.
-       Le titre de l'en-tête disparaît (le titre de contexte le répète) ; les commandes restent bien visibles,
-       pour garder l'accès aux outils. */
+    /* vue projetée (classe "presenting" sur <body>) : ce que voient les élèves. Le titre de l'en-tête disparaît
+       (le titre de contexte le répète). L'en-tête porte tout le pilotage : à gauche « Quitter la présentation »,
+       seule sortie, à l'écart ; à droite Pause/Reprendre, Suivant, Outils et Plus. */
     body.presenting header .heading { display: none; }
+    body.presenting header { align-items: center; }
     body.presenting header .controls { margin-left: auto; }
-    body.presenting header .ctrl-btn { background: var(--surface); } /* commandes pleinement lisibles : « Retour » et « Outils » doivent se trouver sans chercher */
-    .proj-presenting-bar { justify-content: flex-end; }
+    body.presenting header .ctrl-btn:not(.primary) { background: var(--surface); } /* commandes pleinement lisibles, sans chercher */
+    @media (max-width: 520px) { body.presenting header .controls { margin-left: 0; justify-content: flex-start; } } /* téléphone : commandes alignées à gauche, sous « Quitter la présentation » */
     .presenting-view .projected-context-title { font-size: clamp(1.6rem, 6.5vh, 3.6rem); }
     .presenting-view .proj-progress-text { font-size: clamp(1rem, 2.4vh, 1.3rem); }
     .presenting-view .projected-timer .countdown { font-size: clamp(3.5rem, min(13vw, 26vh), 11rem); }
@@ -573,6 +616,11 @@ function boot(initialData) {
       font-size: clamp(1rem, 3vh, 1.6rem); font-weight: 700; text-align: center; padding: 8px;
       flex: 1 1 auto; min-height: 0; overflow: hidden;
     }
+    .tirage-display.is-message { font-size: clamp(1rem, 2.6vh, 1.3rem); }
+    /* état vide (aucun élève à tirer) : dit quoi faire et propose le bouton qui y mène */
+    .tirage-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px 14px; border-radius: 14px; background: var(--bg); border: 1px dashed var(--border); }
+    .tirage-empty-title { margin: 0; font-weight: 700; font-size: 1.05rem; color: var(--ink); }
+    #tools-wrap .tirage-empty .editor-hint { margin: 0; }
     .pool-list { display: flex; flex-wrap: wrap; gap: 4px; }
     .pool-chip { padding: 3px 9px; border-radius: 999px; background: var(--bg); border: 1px solid var(--border); font-size: 0.9rem; font-weight: 700; color: var(--muted); }
     .tirage-tabs { display: flex; gap: 5px; }
@@ -695,17 +743,13 @@ function boot(initialData) {
     /* cibles tactiles : 44 px au minimum (accueil, éditeur, outils) — usage au toucher, en cours de séance */
     .row-btn { width: 44px; height: 44px; }
     .row-btn svg { width: 22px; height: 22px; }
-    .profile-card-order { gap: 4px; }
-    .profile-card-order { flex-direction: row; } /* flèches côte à côte : 44 × 44 px chacune */
     .row-btn .icon-mini { width: 24px; height: 24px; }
     .row-btn.row-labeled { width: auto; padding-inline: 12px 14px; gap: 8px; font: inherit; font-weight: 700; font-size: 1rem; }
     .row-btn.row-labeled .icon-mini { width: 22px; height: 22px; }
     .profile-card-check { min-width: 44px; min-height: 44px; justify-content: center; cursor: pointer; }
     .pause-toggle { min-height: 44px; }
     .editor h4 { font-size: 1.05rem; }
-    .profile-delete { margin-left: 14px; } /* écarté de « Réinitialiser » : action destructive */
     .profile-card-actions { flex-wrap: wrap; }
-    @media (max-width: 520px) { .profile-delete { margin-left: 0; } }
     .action-btn, .tasks-toggle, .add-task-btn, .add-row-btn { min-height: 44px; }
     .appearance-reset { min-height: 44px; padding-inline: 8px; }
     .help-toggle { position: relative; width: 28px; height: 28px; }
@@ -879,7 +923,7 @@ function boot(initialData) {
   };
   /* static content for the '?' help guide, converted at build time from the teacher's
      own guide-content.md (headings/bullets/bold/code/tables -> plain HTML) */
-  var HELP_GUIDE_HTML = '<p class="editor-hint">PL-planif’ aide à préparer et faire vivre le déroulé minuté d\'une séance, pour une classe ou un petit groupe.</p><h2>Vue d\'ensemble</h2><p class="editor-hint">Page web unique, sans compte ni serveur : tout est enregistré dans le navigateur de l\'appareil (localStorage), sans synchronisation entre appareils — pour transporter un programme, on passe par un fichier de sauvegarde (voir plus bas). Un même appareil garde plusieurs programmes indépendants.</p><p class="editor-hint">Trois écrans principaux :</p><ul><li><strong>La vue Programme</strong> : l\'écran normal en classe, étape par étape.</li><li><strong>La vue projetée</strong> : un tableau de bord à projeter devant la classe (minuteur, tâches, devoirs, infos, outils).</li><li><strong>Les outils</strong> : neuf utilitaires indépendants (feu tricolore, mode de travail, minuteur rapide, tirage au sort, dé, comment ça va, sonomètre, plan de travail, minuteur de cours — ce dernier réservé à la vue projetée).</li></ul><h2>La page d\'accueil</h2><p class="editor-hint">La liste des programmes enregistrés sur cet appareil.</p><ul><li><strong>Créer</strong> : trois types de programme (voir section suivante).</li><li><strong>Ouvrir / Dupliquer / Supprimer / Monter-descendre</strong> : gestion courante de la liste.</li><li><strong>Réinitialiser le minuteur</strong> : remet un programme à sa première étape sans l\'ouvrir.</li><li><strong>Sauvegarder</strong> (un programme ou une sélection) : télécharge un fichier <code>.json</code> — seule façon de sécuriser ou transférer un programme.</li><li><strong>Importer un fichier de sauvegarde</strong> : récupère un ou plusieurs programmes depuis un <code>.json</code>.</li></ul><p class="editor-hint">Un rappel discret indique depuis combien de temps la dernière sauvegarde a été faite (mis à jour seulement après un téléchargement volontaire).</p><h2>Les trois types de programme</h2><table class="help-table"><thead><tr><th>Type</th><th>Étapes minutées\u202F?</th><th>Usage</th></tr></thead><tbody><tr><td>Déroulé minuté</td><td>Oui</td><td>Le minuteur avance seul, la case se remplit visuellement</td></tr><tr><td>Checklist sans minutage</td><td>Non, à la main (bouton « Suivant »)</td><td>Une suite d\'étapes à cocher sans contrainte de temps</td></tr><tr><td>Leçon</td><td>Pas d\'étapes</td><td>Ouvre directement en vue projetée : durée, tâches, devoirs, infos</td></tr></tbody></table><p class="editor-hint">Un déroulé se change en checklist (et inversement) dans l\'éditeur, panneau « Minutage ». Une Leçon est un type à part, sans étapes successives.</p><h2>La vue Programme au quotidien</h2><p class="editor-hint">L\'étape en cours s\'affiche en grande carte (icône, nom, temps restant si activé), avec les étapes à venir juste en dessous (« À suivre »). Au-dessus, l\'indication « Étape X sur Y » et une barre montrent l\'avancement dans le programme.</p><p class="editor-hint">Boutons de l’en-tête, en trois groupes : Démarrer/Pause et Étape suivante ; Projeter (vue projetée), Outils et Modifier (éditeur) ; puis le menu Plus, qui regroupe Accueil, Guide d’utilisation, Apparence (thème), Son de transition et Recommencer le programme (avec confirmation, volontairement à l’écart d’Étape suivante). Le bouton Outils est le même en vue Programme et en vue projetée.</p><p class="editor-hint"><strong>Détail d\'une étape</strong> : cliquer sur la carte active ou sur une étape à suivre ouvre un aperçu détaillé (icône, nom, durée, tâches), fermé par la croix, un clic extérieur ou Echap.</p><p class="editor-hint"><strong>Raccourcis clavier</strong> (sur cet écran et en vue projetée, sans effet pendant la saisie dans un champ) : Espace démarre/met en pause, → passe à l\'étape suivante, ← revient à l\'étape précédente, F bascule vers la vue projetée (et vice versa). Pour une checklist, Espace ne fait rien ; les flèches et F fonctionnent normalement.</p><h2>L\'éditeur d\'un programme</h2><p class="editor-hint">Accessible via le crayon « Modifier ». Rien n\'est pris en compte avant <strong>Enregistrer</strong> — Annuler ignore les changements.</p><ul><li><strong>Minutage</strong> (déroulé/checklist uniquement) : minuté ou checklist ; si minuté, possibilité de masquer le chiffre du temps restant (le remplissage visuel reste toujours visible).</li><li><strong>Apparence</strong> (déroulé/checklist uniquement) : couleur principale, couleur des pauses, police.</li><li><strong>Déroulement</strong> (déroulé/checklist uniquement) : ajouter/supprimer/réordonner les étapes, icône, durée, marquage « Pause ». Chaque étape a des tâches (élève + consigne), chacune Obligatoire ou non et À la maison ou non (voir étiquettes ci-dessous) ; une tâche « à la maison » peut recevoir une date de rendu, et un sélecteur « Élèves assignés » permet de l\'assigner à zéro, un ou plusieurs élèves de la liste (Ctrl/Cmd-clic pour en choisir plusieurs) — indépendant du champ libre « Élève » à côté, qui reste un simple texte affiché tel quel. Cette assignation sert de base au filtrage par élève des blocs personnalisés de la vue projetée (voir plus bas).</li><li><strong>Tâches à faire en classe</strong> (Leçon uniquement) : mêmes tâches, groupes de choix et assignation aux élèves qu\'une étape de déroulé, mais directement pour la leçon puisqu\'il n\'y a pas d\'étapes.</li><li><strong>Élèves</strong> : liste utilisée par le tirage au sort et les groupes dans les Outils, ainsi que par l\'assignation des tâches ci-dessus. Un élève peut être exclu du tirage et/ou des groupes aléatoires (case « À ne pas attribuer à un groupe (tirage aléatoire) »), et recevoir une étiquette pour être séparé d\'autres élèves. Import possible (un nom par ligne, codes <code>!</code>, <code>#</code>, <code>@tag</code>).</li><li><strong>Groupes d\'élèves</strong> (sous-section du panneau « Élèves ») : créez ici des groupes nommés à l\'avance (ex. « Groupe rouge », « Groupe bleu »), puis choisissez dans la liste des élèves, pour chacun, à quel groupe il appartient (un seul groupe à la fois, ou aucun). Ce sont des groupes fixes que vous composez vous-même — à ne pas confondre avec les « Groupes de choix » des tâches (choisir N tâches sur M, voir plus bas) ni avec les « Groupes aléatoires » du tirage au sort (composition tirée au hasard). Ils servent à l\'onglet « Groupes fixes » de l\'outil Tirage au sort (voir « Les outils » ci-dessous), qui affiche cette répartition et peut aussi la composer au hasard pour vous ; le résultat reste ensuite modifiable ici, élève par élève.</li><li><strong>Devoirs et infos</strong> : panneau dédié pour préparer, à l\'avance et sans passer par la vue projetée, les devoirs et les infos importantes : la liste (en lecture) des tâches déjà marquées « à la maison » dans les étapes, une liste de devoirs ajoutés à la main (texte + date de rendu, ajout/suppression comme pour les élèves), un champ « Infos importantes », et le bouton « Copier devoirs et infos ». C\'est la même donnée que celle modifiable en vue projetée — ici elle suit la règle Enregistrer/Annuler de l\'éditeur.</li><li><strong>Blocs personnalisés</strong> : panneau pour créer des blocs supplémentaires affichés dans la vue projetée, en plus des trois blocs fixes, et pour les réordonner entre eux (flèches monter/descendre, comme pour les étapes), puis, dans sa sous-partie « Blocs affichés en vue projetée », une case par bloc pour afficher ou masquer chacun (les trois blocs fixes, le bloc « Minuteur de cours » et chaque bloc personnalisé) — voir « Blocs personnalisés » dans la section « La vue projetée » ci-dessous.</li><li><strong>Vue projetée</strong> (nommé « Outils affichés dans la vue projetée » dans l\'éditeur d\'une Leçon) : « Outils du panneau Outils » (outils proposés dans la vue projetée), réglage « Afficher Obligatoire / À choix / À la maison » et réglage « Afficher les groupes de choix » (deux cases indépendantes, uniquement modifiables ici ou dans l\'éditeur d\'une Leçon).</li></ul><h2>Les étiquettes de tâches</h2><p class="editor-hint">Chaque tâche peut porter jusqu\'à deux étiquettes indépendantes :</p><table class="help-table"><thead><tr><th>Étiquette</th><th>Sens</th></tr></thead><tbody><tr><td><strong>Obligatoire</strong></td><td>La tâche doit être faite</td></tr><tr><td><strong>À choix</strong></td><td>Automatique dès qu\'une tâche n\'est pas Obligatoire — jamais les deux à la fois</td></tr><tr><td><strong>À la maison si pas fini</strong></td><td>Indépendante des deux précédentes, cumulable avec l\'une ou l\'autre</td></tr></tbody></table><p class="editor-hint">Affichées dans le Plan de travail, le détail d\'une étape, la vue projetée et à l\'impression. Réglage « Afficher Obligatoire / À choix / À la maison » dans l\'éditeur (panneau « Vue projetée » du déroulé, ou « Outils affichés dans la vue projetée » de la Leçon) : unique pour tout le programme, ne se change que depuis l\'éditeur (jamais depuis un écran élève) ; une fois enregistré, il s\'applique partout.</p><p class="editor-hint"><strong>Groupes de choix</strong> : pour dire « choisissez-en N sur M » (ex. 2 exercices de divisions sur 5), regroupez des tâches d\'une même étape (ou de la Leçon) dans l\'éditeur : créez un groupe (nom facultatif + nombre à choisir), puis assignez-lui les tâches concernées — le « sur M » se recalcule automatiquement selon les tâches actuellement dans le groupe. Les tâches d\'un groupe s\'affichent ensemble dans un sous-bloc coloré (« Divisions — 2 sur 5 »), sans toucher aux étiquettes Obligatoire / À choix / À la maison de chacune. Leur affichage se règle indépendamment des étiquettes, avec la case « Afficher les groupes de choix » du même panneau.</p><h2>La vue projetée</h2><p class="editor-hint">Le tableau de bord à projeter, activé par « Vue projetée » (ou l\'ouverture directe d\'une Leçon). Tout tient sur un seul écran, sans défilement de page.</p><ul><li><strong>Titre de contexte</strong> : en haut, l\'étape en cours (déroulé) ou le titre de la leçon, mis à jour automatiquement. Pour un déroulé, l\'indication « Étape X / Y » et une barre de progression s\'affichent juste en dessous.</li><li><strong>Chrono</strong> : ne montre plus que le chiffre du temps restant (ou la note « Temps non affiché ») et son remplissage visuel, qui reste toujours affiché quel que soit ce réglage. Pause/Redémarrer, la durée totale du cours et l\'affichage du chiffre sont désormais regroupés dans l\'outil « Minuteur de cours » (voir « Les outils » ci-dessous), à ouvrir depuis le bouton Outils.</li><li><strong>Trois blocs fixes</strong> : Tâches à faire en classe (auto), Devoirs (tâches « à la maison » + lignes manuelles, chacune avec date de rendu possible), Infos importantes (texte libre). Chaque bloc défile indépendamment si le contenu est long. Chacun peut être affiché ou masqué indépendamment depuis l\'éditeur, panneau « Blocs personnalisés », sous-partie « Blocs affichés en vue projetée » (une case par bloc).</li><li><strong>Bloc « Minuteur de cours »</strong> : comme les trois blocs fixes ci-dessus, ce grand bloc (en haut, à côté du bloc-outil éventuel) a sa propre case « affiché » dans l\'éditeur, panneau « Blocs personnalisés » — le décocher le masque entièrement en vue projetée. C\'est différent du réglage « Afficher le temps » de l\'outil « Minuteur de cours » (voir « Les outils » ci-dessous), qui masque seulement le chiffre à l\'intérieur du bloc quand celui-ci reste affiché.</li><li><strong>Copier devoirs et infos</strong> : copie l\'ensemble (devoirs avec date au format JJ.MM.AAAA si renseignée, puis infos) dans le presse-papiers, prêt à coller ailleurs (par ex. le site de l\'école). Même bouton disponible dans l\'éditeur du programme (voir plus haut), pour préparer sans passer par la vue projetée.</li><li><strong>Mode présentation</strong> : le bouton « Mode présentation » / « Quitter la présentation » (en haut à droite de la vue) masque les champs de saisie et les boutons d’édition, retire les blocs vides et agrandit le décompte et les textes pour la classe. Les boutons de l’en-tête restent visibles, pour garder l’accès aux outils. La touche Échap, ou « Quitter la présentation », revient à la vue normale. La présentation est le mode par défaut de « Projeter » ; pour modifier les champs, cliquez sur « Quitter la présentation ». Ce choix est mémorisé sur cet appareil.</li><li><strong>Outils</strong> : le bouton Outils de l\'en-tête ouvre l\'outil choisi dans un bloc à côté, sans masquer les autres blocs. Outils proposés réglables dans l\'éditeur.</li><li><strong>Blocs personnalisés</strong> : en plus des trois blocs fixes, l\'éditeur (panneau « Blocs personnalisés ») permet de créer des blocs supplémentaires, chacun avec un nom et un ou plusieurs « outils » :</li><li><strong>Liste de tâches filtrée par élève(s)</strong> : choisissez un ou plusieurs élèves dans la liste de la classe ; le bloc n\'affiche que les tâches qui leur sont assignées (voir « Élèves assignés » dans « L\'éditeur d\'un programme »).</li><li><strong>Minuteur</strong> (bloc personnalisé) : un compte à rebours indépendant, séparé du minuteur de cours et de celui de chaque autre bloc personnalisé — plusieurs peuvent tourner en même temps, chacun décomptant indépendamment. Ses réglages (préréglages de durée, Démarrer/Pause/Réinitialiser) sont masqués par défaut : seul le chiffre (et son remplissage visuel) s\'affiche, pour un bloc élève dépouillé ; le lien « Réglages » (chevron) les déplie ou les replie à nouveau, sans jamais interrompre le décompte en cours.</li></ul><p class="editor-hint">Les flèches monter/descendre à côté de chaque bloc personnalisé (panneau « Blocs personnalisés » de l\'éditeur) changent leur ordre entre eux dans la vue projetée — pratique pour placer un bloc élève juste après tel bloc fixe plutôt qu\'à la toute fin. Les trois blocs fixes et le bloc « Minuteur de cours » gardent toujours leur place ; seuls les blocs personnalisés se réordonnent, les uns par rapport aux autres, et apparaissent après les blocs fixes.</p><p class="editor-hint">Chaque bloc personnalisé a sa propre case « affiché » dans le panneau « Blocs personnalisés » de l\'éditeur (sous-partie « Blocs affichés en vue projetée »), au même titre que les trois blocs fixes. Tous les blocs actuellement affichés (fixes et personnalisés) se partagent la grille de la vue projetée à parts égales : le nombre de colonnes s\'ajuste automatiquement selon combien de blocs sont visibles.</p><h2>Les outils</h2><p class="editor-hint">Accessibles depuis le bouton « Outils » (vue Programme ou projetée) :</p><table class="help-table"><thead><tr><th>Outil</th><th>Ce qu\'il fait</th></tr></thead><tbody><tr><td>Feu tricolore</td><td>Rouge / orange / vert, libellé modifiable par couleur</td></tr><tr><td>Mode de travail</td><td>Une icône parmi 8 (individuel, silence, équipe, lecture…)</td></tr><tr><td>Minuteur rapide</td><td>Compte à rebours indépendant, préréglages 1/3/5/10 min ou durée libre</td></tr><tr><td>Tirage au sort</td><td>Trois onglets : individuel (sans remise, historique), groupes aléatoires (respecte exclusions et étiquettes, groupes provisoires et sans nom, jamais enregistrés) ou groupes fixes (affiche les « Groupes d\'élèves » nommés composés dans l\'éditeur ; avec au moins deux groupes, le bouton « Répartir aléatoirement » les remplit au hasard — même logique de répartition équitable et de séparation par étiquette que « Groupes aléatoires », mais écrite sur ces groupes nommés eux-mêmes et enregistrée aussitôt, donc aussi visible ensuite dans l\'éditeur ; une confirmation est demandée si une répartition existait déjà)</td></tr><tr><td>Dé</td><td>Un ou plusieurs dés (4 à 20 faces ou personnalisé), total affiché si plusieurs — réglages mémorisés</td></tr><tr><td>Comment ça va\u202F?</td><td>4 modalités au choix, compteurs indépendants</td></tr><tr><td>Sonomètre</td><td>Jauge de volume via le micro, seuil et alerte optionnelle</td></tr><tr><td>Plan de travail</td><td>Vue liste du programme, à l\'écran ou imprimée</td></tr><tr><td>Minuteur de cours</td><td>Pause/Redémarrer du minuteur de cours, réglage de sa durée et de l\'affichage du chiffre — uniquement disponible en vue projetée</td></tr></tbody></table><p class="editor-hint">Quitter le panneau Outils arrête proprement tout outil actif (minuteur rapide, micro du sonomètre). Le bloc « Minuteur de cours » (le grand bloc en vue projetée, pas cet outil) peut être affiché ou masqué par programme depuis l\'éditeur, panneau « Blocs personnalisés ».</p><h2>Sauvegarde, export/import, installation</h2><ul><li><strong>Automatique</strong> : chaque modification est enregistrée immédiatement sur cet appareil ; recharger/fermer/redémarrer ne perd rien.</li><li><strong>Pas de compte ni synchronisation en ligne</strong> : changer d\'appareil ou de navigateur donne un départ à vide.</li><li><strong>Fichiers <code>.json</code></strong> : Sauvegarder télécharge un fichier ; Importer le fait réapparaître, sur cet appareil ou un autre.</li><li><strong>Installer l\'app</strong> : depuis l\'accueil, comme une application dans sa propre fenêtre (Chrome ou Edge).</li><li><strong>Échec d\'enregistrement</strong> (navigation privée, stockage indisponible) : un message le signale clairement.</li></ul><h2>Limites à connaître et conseils</h2><ul><li><strong>Un appareil = ses propres données</strong> : sauvegardez régulièrement (<code>.json</code>) si vous changez d\'ordinateur ou voulez une copie de sécurité.</li><li><strong>Navigation privée</strong> : stockage parfois limité ou effacé à la fermeture — à éviter en usage régulier.</li><li><strong>Sonomètre</strong> : demande le micro à chaque activation ; le son n\'est jamais enregistré ni transmis.</li><li><strong>Son de transition</strong> : identique en vue Programme et en vue projetée, coupable depuis le menu Plus.</li><li><strong>Pas de vrai second écran synchronisé</strong> : la vue projetée s\'affiche dans la fenêtre que vous pilotez.</li></ul>';
+  var HELP_GUIDE_HTML = '<p class="editor-hint">PL-planif’ aide à préparer et faire vivre le déroulé minuté d\'une séance, pour une classe ou un petit groupe.</p><h2>Vue d\'ensemble</h2><p class="editor-hint">Page web unique, sans compte ni serveur : tout est enregistré dans le navigateur de l\'appareil (localStorage), sans synchronisation entre appareils — pour transporter un programme, on passe par un fichier de sauvegarde (voir plus bas). Un même appareil garde plusieurs programmes indépendants.</p><p class="editor-hint">Trois écrans principaux :</p><ul><li><strong>La vue Programme</strong> : l\'écran normal en classe, étape par étape.</li><li><strong>La vue projetée</strong> : un tableau de bord à projeter devant la classe (minuteur, tâches, devoirs, infos, outils).</li><li><strong>Les outils</strong> : neuf utilitaires indépendants (feu tricolore, mode de travail, minuteur rapide, tirage au sort, dé, comment ça va, sonomètre, plan de travail, minuteur de cours — ce dernier réservé à la vue projetée).</li></ul><h2>La page d\'accueil</h2><p class="editor-hint">La liste des programmes enregistrés sur cet appareil.</p><ul><li><strong>Créer</strong> : trois types de programme (voir section suivante).</li><li><strong>Ouvrir</strong> : le bouton principal de chaque programme.</li><li><strong>Plus</strong> (à côté d’Ouvrir) : les autres actions sur ce programme — Dupliquer, Sauvegarder dans un fichier, Remettre le minuteur au début (retour à la première étape, sans ouvrir le programme ; « Revenir à la première étape » pour une checklist), Monter ou Descendre dans la liste, Supprimer (avec confirmation).</li><li><strong>Sauvegarder</strong> (un programme, depuis son menu Plus, ou une sélection cochée) : télécharge un fichier <code>.json</code> — seule façon de sécuriser ou transférer un programme.</li><li><strong>Importer un fichier de sauvegarde</strong> : récupère un ou plusieurs programmes depuis un <code>.json</code>.</li></ul><p class="editor-hint">Un rappel discret indique depuis combien de temps la dernière sauvegarde a été faite (mis à jour seulement après un téléchargement volontaire).</p><h2>Les trois types de programme</h2><table class="help-table"><thead><tr><th>Type</th><th>Étapes minutées\u202F?</th><th>Usage</th></tr></thead><tbody><tr><td>Déroulé minuté</td><td>Oui</td><td>Le minuteur avance seul, la case se remplit visuellement</td></tr><tr><td>Checklist sans minutage</td><td>Non, à la main (bouton « Suivant »)</td><td>Une suite d\'étapes à cocher sans contrainte de temps</td></tr><tr><td>Leçon</td><td>Pas d\'étapes</td><td>Ouvre directement en vue projetée : durée, tâches, devoirs, infos</td></tr></tbody></table><p class="editor-hint">Un déroulé se change en checklist (et inversement) dans l\'éditeur, panneau « Minutage ». Une Leçon est un type à part, sans étapes successives.</p><h2>La vue Programme au quotidien</h2><p class="editor-hint">L\'étape en cours s\'affiche en grande carte (icône, nom, temps restant si activé), avec les étapes à venir juste en dessous (« À suivre »). Au-dessus, l\'indication « Étape X sur Y » et une barre montrent l\'avancement dans le programme. Au-dessus du nom de l’étape, un mot indique l’état du minuteur : « Prêt » (pas encore démarré), « En cours » ou « En pause ».</p><p class="editor-hint">Boutons de l’en-tête, en trois groupes : Démarrer/Pause/Reprendre et Étape suivante ; Projeter (vue projetée), Outils et Modifier (éditeur) ; puis le menu Plus, qui regroupe Accueil, Guide d’utilisation, Apparence (thème), Son de transition et Recommencer le programme (avec confirmation, volontairement à l’écart d’Étape suivante). Le bouton Outils est le même en vue Programme et en vue projetée.</p><p class="editor-hint"><strong>Détail d\'une étape</strong> : cliquer sur la carte active ou sur une étape à suivre ouvre un aperçu détaillé (icône, nom, durée, tâches), fermé par la croix, un clic extérieur ou Echap.</p><p class="editor-hint"><strong>Raccourcis clavier</strong> (sur cet écran et en vue projetée, sans effet pendant la saisie dans un champ) : Espace démarre, met en pause ou reprend le décompte affiché, → passe à l’étape suivante, ← revient à l’étape précédente, F bascule vers la vue projetée (et vice versa). Pour une checklist, Espace n’agit qu’en vue projetée (sur le minuteur de cours) ; les flèches et F fonctionnent normalement.</p><h2>L\'éditeur d\'un programme</h2><p class="editor-hint">Accessible via le crayon « Modifier ». Rien n\'est pris en compte avant <strong>Enregistrer</strong> — Annuler ignore les changements.</p><ul><li><strong>Minutage</strong> (déroulé/checklist uniquement) : minuté ou checklist ; si minuté, possibilité de masquer le chiffre du temps restant (le remplissage visuel reste toujours visible).</li><li><strong>Apparence</strong> (déroulé/checklist uniquement) : couleur principale, couleur des pauses, police.</li><li><strong>Déroulement</strong> (déroulé/checklist uniquement) : ajouter/supprimer/réordonner les étapes, icône, durée, marquage « Pause ». Chaque étape a des tâches (élève + consigne), chacune Obligatoire ou non et À la maison ou non (voir étiquettes ci-dessous) ; une tâche « à la maison » peut recevoir une date de rendu, et un sélecteur « Élèves assignés » permet de l\'assigner à zéro, un ou plusieurs élèves de la liste (Ctrl/Cmd-clic pour en choisir plusieurs) — indépendant du champ libre « Élève » à côté, qui reste un simple texte affiché tel quel. Cette assignation sert de base au filtrage par élève des blocs personnalisés de la vue projetée (voir plus bas).</li><li><strong>Tâches à faire en classe</strong> (Leçon uniquement) : mêmes tâches, groupes de choix et assignation aux élèves qu\'une étape de déroulé, mais directement pour la leçon puisqu\'il n\'y a pas d\'étapes.</li><li><strong>Élèves</strong> : liste utilisée par le tirage au sort et les groupes dans les Outils, ainsi que par l\'assignation des tâches ci-dessus. Un élève peut être exclu du tirage et/ou des groupes aléatoires (case « À ne pas attribuer à un groupe (tirage aléatoire) »), et recevoir une étiquette pour être séparé d\'autres élèves. Import possible (un nom par ligne, codes <code>!</code>, <code>#</code>, <code>@tag</code>).</li><li><strong>Groupes d\'élèves</strong> (sous-section du panneau « Élèves ») : créez ici des groupes nommés à l\'avance (ex. « Groupe rouge », « Groupe bleu »), puis choisissez dans la liste des élèves, pour chacun, à quel groupe il appartient (un seul groupe à la fois, ou aucun). Ce sont des groupes fixes que vous composez vous-même — à ne pas confondre avec les « Groupes de choix » des tâches (choisir N tâches sur M, voir plus bas) ni avec les « Groupes aléatoires » du tirage au sort (composition tirée au hasard). Ils servent à l\'onglet « Groupes fixes » de l\'outil Tirage au sort (voir « Les outils » ci-dessous), qui affiche cette répartition et peut aussi la composer au hasard pour vous ; le résultat reste ensuite modifiable ici, élève par élève.</li><li><strong>Devoirs et infos</strong> : panneau dédié pour préparer, à l\'avance et sans passer par la vue projetée, les devoirs et les infos importantes : la liste (en lecture) des tâches déjà marquées « à la maison » dans les étapes, une liste de devoirs ajoutés à la main (texte + date de rendu, ajout/suppression comme pour les élèves), un champ « Infos importantes », et le bouton « Copier devoirs et infos ». C\'est la même donnée que celle modifiable en vue projetée — ici elle suit la règle Enregistrer/Annuler de l\'éditeur.</li><li><strong>Blocs personnalisés</strong> : panneau pour créer des blocs supplémentaires affichés dans la vue projetée, en plus des trois blocs fixes, et pour les réordonner entre eux (flèches monter/descendre, comme pour les étapes), puis, dans sa sous-partie « Blocs affichés en vue projetée », une case par bloc pour afficher ou masquer chacun (les trois blocs fixes, le bloc « Minuteur de cours » et chaque bloc personnalisé) — voir « Blocs personnalisés » dans la section « La vue projetée » ci-dessous.</li><li><strong>Vue projetée</strong> (nommé « Outils affichés dans la vue projetée » dans l\'éditeur d\'une Leçon) : « Outils du panneau Outils » (outils proposés dans la vue projetée), réglage « Afficher Obligatoire / À choix / À la maison » et réglage « Afficher les groupes de choix » (deux cases indépendantes, uniquement modifiables ici ou dans l\'éditeur d\'une Leçon).</li></ul><h2>Les étiquettes de tâches</h2><p class="editor-hint">Chaque tâche peut porter jusqu\'à deux étiquettes indépendantes :</p><table class="help-table"><thead><tr><th>Étiquette</th><th>Sens</th></tr></thead><tbody><tr><td><strong>Obligatoire</strong></td><td>La tâche doit être faite</td></tr><tr><td><strong>À choix</strong></td><td>Automatique dès qu\'une tâche n\'est pas Obligatoire — jamais les deux à la fois</td></tr><tr><td><strong>À la maison si pas fini</strong></td><td>Indépendante des deux précédentes, cumulable avec l\'une ou l\'autre</td></tr></tbody></table><p class="editor-hint">Affichées dans le Plan de travail, le détail d\'une étape, la vue projetée et à l\'impression. Réglage « Afficher Obligatoire / À choix / À la maison » dans l\'éditeur (panneau « Vue projetée » du déroulé, ou « Outils affichés dans la vue projetée » de la Leçon) : unique pour tout le programme, ne se change que depuis l\'éditeur (jamais depuis un écran élève) ; une fois enregistré, il s\'applique partout.</p><p class="editor-hint"><strong>Groupes de choix</strong> : pour dire « choisissez-en N sur M » (ex. 2 exercices de divisions sur 5), regroupez des tâches d\'une même étape (ou de la Leçon) dans l\'éditeur : créez un groupe (nom facultatif + nombre à choisir), puis assignez-lui les tâches concernées — le « sur M » se recalcule automatiquement selon les tâches actuellement dans le groupe. Les tâches d\'un groupe s\'affichent ensemble dans un sous-bloc coloré (« Divisions — 2 sur 5 »), sans toucher aux étiquettes Obligatoire / À choix / À la maison de chacune. Leur affichage se règle indépendamment des étiquettes, avec la case « Afficher les groupes de choix » du même panneau.</p><h2>La vue projetée</h2><p class="editor-hint">Le tableau de bord à projeter, ouvert par « Projeter » (ou l’ouverture directe d’une Leçon). Tout tient sur un seul écran, sans défilement de page.</p><ul><li><strong>Piloter sans quitter</strong> : l’en-tête garde Démarrer/Pause/Reprendre, Suivant, Outils et le menu Plus (Accueil, Modifier devoirs et infos, Guide d’utilisation, Apparence, Son de transition, Recommencer le programme). À gauche, « Quitter la présentation » est la seule sortie : elle ramène à la vue Programme (à l’accueil pour une Leçon). La touche Échap fait de même pour un programme ou une checklist ; si un outil est ouvert, elle le referme d’abord.</li><li><strong>Titre de contexte</strong> : en haut, l\'étape en cours (déroulé) ou le titre de la leçon, mis à jour automatiquement. Pour un déroulé, l\'indication « Étape X / Y » et une barre de progression s\'affichent juste en dessous.</li><li><strong>Décompte</strong> : un mot d’état (« Prêt », « En cours », « En pause », « Terminé »), le temps restant (ou la note « Temps non affiché ») et le remplissage visuel de la case, toujours affiché. Le texte est posé sur une plaque opaque : il reste lisible quel que soit l’avancement du remplissage. Pour un programme minuté, c’est le décompte de l’étape en cours, le même que dans la vue Programme : Pause, Suivant et le passage automatique à l’étape suivante agissent sur ce que la classe voit. Pour une checklist ou une Leçon, c’est le minuteur de cours, dont la durée totale se règle dans l’outil « Minuteur de cours » (voir « Les outils » ci-dessous).</li><li><strong>Trois blocs fixes</strong> : Tâches à faire en classe (auto), Devoirs (tâches « à la maison » + lignes manuelles, chacune avec date de rendu possible), Infos importantes (texte libre). Chaque bloc défile indépendamment si le contenu est long. Chacun peut être affiché ou masqué indépendamment depuis l\'éditeur, panneau « Blocs personnalisés », sous-partie « Blocs affichés en vue projetée » (une case par bloc).</li><li><strong>Bloc « Minuteur de cours »</strong> : comme les trois blocs fixes ci-dessus, ce grand bloc (en haut, à côté du bloc-outil éventuel) a sa propre case « affiché » dans l\'éditeur, panneau « Blocs personnalisés » — le décocher le masque entièrement en vue projetée. C\'est différent du réglage « Afficher le temps » de l\'outil « Minuteur de cours » (voir « Les outils » ci-dessous), qui masque seulement le chiffre à l\'intérieur du bloc quand celui-ci reste affiché.</li><li><strong>Copier devoirs et infos</strong> (bouton visible pendant « Modifier devoirs et infos », voir ci-dessous) : copie l\'ensemble (devoirs avec date au format JJ.MM.AAAA si renseignée, puis infos) dans le presse-papiers, prêt à coller ailleurs (par ex. le site de l\'école). Même bouton disponible dans l\'éditeur du programme (voir plus haut), pour préparer sans passer par la vue projetée.</li><li><strong>Modifier devoirs et infos</strong> (menu Plus) : fait apparaître, dans la vue projetée elle-même, les champs pour ajouter ou corriger un devoir et les infos importantes, ainsi que tous les blocs affichés, même vides. « Terminer » (ou la touche Échap) revient à l’affichage pour la classe, qui masque les champs, retire les blocs vides et agrandit le décompte et les textes. « Projeter » ouvre toujours l’affichage pour la classe.</li><li><strong>Outils</strong> : le bouton Outils de l\'en-tête ouvre l\'outil choisi dans un bloc à côté, sans masquer les autres blocs. Outils proposés réglables dans l\'éditeur.</li><li><strong>Blocs personnalisés</strong> : en plus des trois blocs fixes, l\'éditeur (panneau « Blocs personnalisés ») permet de créer des blocs supplémentaires, chacun avec un nom et un ou plusieurs « outils » :</li><li><strong>Liste de tâches filtrée par élève(s)</strong> : choisissez un ou plusieurs élèves dans la liste de la classe ; le bloc n\'affiche que les tâches qui leur sont assignées (voir « Élèves assignés » dans « L\'éditeur d\'un programme »).</li><li><strong>Minuteur</strong> (bloc personnalisé) : un compte à rebours indépendant, séparé du minuteur de cours et de celui de chaque autre bloc personnalisé — plusieurs peuvent tourner en même temps, chacun décomptant indépendamment. Ses réglages (préréglages de durée, Démarrer/Pause/Réinitialiser) sont masqués par défaut : seul le chiffre (et son remplissage visuel) s\'affiche, pour un bloc élève dépouillé ; le lien « Réglages » (chevron) les déplie ou les replie à nouveau, sans jamais interrompre le décompte en cours.</li></ul><p class="editor-hint">Les flèches monter/descendre à côté de chaque bloc personnalisé (panneau « Blocs personnalisés » de l\'éditeur) changent leur ordre entre eux dans la vue projetée — pratique pour placer un bloc élève juste après tel bloc fixe plutôt qu\'à la toute fin. Les trois blocs fixes et le bloc « Minuteur de cours » gardent toujours leur place ; seuls les blocs personnalisés se réordonnent, les uns par rapport aux autres, et apparaissent après les blocs fixes.</p><p class="editor-hint">Chaque bloc personnalisé a sa propre case « affiché » dans le panneau « Blocs personnalisés » de l\'éditeur (sous-partie « Blocs affichés en vue projetée »), au même titre que les trois blocs fixes. Tous les blocs actuellement affichés (fixes et personnalisés) se partagent la grille de la vue projetée à parts égales : le nombre de colonnes s\'ajuste automatiquement selon combien de blocs sont visibles.</p><h2>Les outils</h2><p class="editor-hint">Accessibles depuis le bouton « Outils » (vue Programme ou projetée) :</p><table class="help-table"><thead><tr><th>Outil</th><th>Ce qu\'il fait</th></tr></thead><tbody><tr><td>Feu tricolore</td><td>Rouge / orange / vert, libellé modifiable par couleur</td></tr><tr><td>Mode de travail</td><td>Une icône parmi 8 (individuel, silence, équipe, lecture…)</td></tr><tr><td>Minuteur rapide</td><td>Compte à rebours indépendant, préréglages 1/3/5/10 min ou durée libre</td></tr><tr><td>Tirage au sort</td><td>Trois onglets : individuel (sans remise, historique ; une fois tous les élèves tirés, « Recommencer le tirage » relance un tour ; sans élève disponible, un bouton mène à la liste des élèves), groupes aléatoires (respecte exclusions et étiquettes, groupes provisoires et sans nom, jamais enregistrés) ou groupes fixes (affiche les « Groupes d\'élèves » nommés composés dans l\'éditeur ; avec au moins deux groupes, le bouton « Répartir aléatoirement » les remplit au hasard — même logique de répartition équitable et de séparation par étiquette que « Groupes aléatoires », mais écrite sur ces groupes nommés eux-mêmes et enregistrée aussitôt, donc aussi visible ensuite dans l\'éditeur ; une confirmation est demandée si une répartition existait déjà)</td></tr><tr><td>Dé</td><td>Un ou plusieurs dés (4 à 20 faces ou personnalisé), total affiché si plusieurs — réglages mémorisés</td></tr><tr><td>Comment ça va\u202F?</td><td>4 modalités au choix, compteurs indépendants</td></tr><tr><td>Sonomètre</td><td>Jauge de volume via le micro, seuil et alerte optionnelle</td></tr><tr><td>Plan de travail</td><td>Vue liste du programme, à l\'écran ou imprimée</td></tr><tr><td>Minuteur de cours</td><td>Pause/Redémarrer du décompte projeté et affichage ou non du chiffre ; pour une checklist ou une Leçon, réglage de la durée totale du cours (pour un programme minuté, le décompte suit l’étape en cours) — uniquement disponible en vue projetée</td></tr></tbody></table><p class="editor-hint">Quitter le panneau Outils arrête proprement tout outil actif (minuteur rapide, micro du sonomètre). Le bloc « Minuteur de cours » (le grand bloc en vue projetée, pas cet outil) peut être affiché ou masqué par programme depuis l\'éditeur, panneau « Blocs personnalisés ».</p><h2>Sauvegarde, export/import, installation</h2><ul><li><strong>Automatique</strong> : chaque modification est enregistrée immédiatement sur cet appareil ; recharger/fermer/redémarrer ne perd rien.</li><li><strong>Pas de compte ni synchronisation en ligne</strong> : changer d\'appareil ou de navigateur donne un départ à vide.</li><li><strong>Fichiers <code>.json</code></strong> : Sauvegarder télécharge un fichier ; Importer le fait réapparaître, sur cet appareil ou un autre.</li><li><strong>Installer l\'app</strong> : depuis l\'accueil, comme une application dans sa propre fenêtre (Chrome ou Edge).</li><li><strong>Échec d\'enregistrement</strong> (navigation privée, stockage indisponible) : un message le signale clairement.</li></ul><h2>Limites à connaître et conseils</h2><ul><li><strong>Un appareil = ses propres données</strong> : sauvegardez régulièrement (<code>.json</code>) si vous changez d\'ordinateur ou voulez une copie de sécurité.</li><li><strong>Navigation privée</strong> : stockage parfois limité ou effacé à la fermeture — à éviter en usage régulier.</li><li><strong>Sonomètre</strong> : demande le micro à chaque activation ; le son n\'est jamais enregistré ni transmis.</li><li><strong>Son de transition</strong> : identique en vue Programme et en vue projetée, coupable depuis le menu Plus.</li><li><strong>Pas de vrai second écran synchronisé</strong> : la vue projetée s\'affiche dans la fenêtre que vous pilotez.</li></ul>';
   var ICON_LABELS = [
     ["accueil", "Porte — accueil"],
     ["quiz", "Cerveau — quiz"],
@@ -1081,14 +1125,12 @@ function boot(initialData) {
   var TRANSITION_SOUND_KEY = "apres-midi-transition-sound";
   var PRESENT_KEY = "apres-midi-presentation";
 
-  /* mode présentation de la vue projetée : préférence d'affichage seulement (jamais exportée avec les
-     programmes). Activé par défaut (la vue pensée pour le fond de la classe) : absente ou illisible => activé.
-     Un choix explicite « Quitter la présentation » (valeur "0") reste respecté. */
-  function loadPresenting() {
-    try { return localStorage.getItem(PRESENT_KEY) !== "0"; } catch (e) { return true; }
-  }
-  function savePresenting(v) { try { localStorage.setItem(PRESENT_KEY, v ? "1" : "0"); } catch (e) {} }
-  var PRESENTING = loadPresenting();
+  /* La vue projetée s'ouvre toujours sur l'affichage pour la classe (PRESENTING = true) ; false n'est qu'un
+     état passager, le temps de modifier les devoirs et infos (voir setPresenting()). L'ancienne préférence
+     mémorisée sous PRESENT_KEY (« 0 » = rester sur la vue avec champs de saisie) n'est donc plus lue ni
+     écrite : elle faisait arriver sur une vue intermédiaire au lieu de la présentation. La clé reste
+     déclarée pour mémoire (ne pas la réutiliser pour autre chose). */
+  var PRESENTING = true;
 
   /* petit signal sonore optionnel joué au passage automatique à l’étape suivante (pas au clic manuel « suivant ») */
   function loadTransitionSoundEnabled() {
@@ -1266,7 +1308,7 @@ function boot(initialData) {
         '<input type="text" class="group-label" placeholder="Nom du groupe (facultatif)" value="' + esc(g.label || "") + '" aria-label="Nom du groupe" />' +
         '<label class="pause-toggle">Choisir combien\u202F?<input type="number" class="group-choose" min="1" value="' + (g.choose > 0 ? g.choose : 1) + '" style="width:56px;" aria-label="Nombre de tâches à choisir" /></label>' +
         '<span class="group-count">sur ' + count + "</span>" +
-        '<button class="row-btn group-delete" title="Supprimer ce groupe">' + svg("trash") + "</button>" +
+        '<button class="row-btn group-delete" title="Supprimer ce groupe" aria-label="Supprimer ce groupe">' + svg("trash") + "</button>" +
       "</div>";
     }).join("");
   }
@@ -1306,7 +1348,7 @@ function boot(initialData) {
       return '<div class="group-row" data-gi="' + gi + '">' +
         '<input type="text" class="group-label" placeholder="Nom du groupe (ex. Groupe rouge)" value="' + esc(g.label || "") + '" aria-label="Nom du groupe d’élèves" />' +
         '<span class="group-count">' + count + " élève" + (count === 1 ? "" : "s") + "</span>" +
-        '<button class="row-btn group-delete" title="Supprimer ce groupe">' + svg("trash") + "</button>" +
+        '<button class="row-btn group-delete" title="Supprimer ce groupe" aria-label="Supprimer ce groupe">' + svg("trash") + "</button>" +
       "</div>";
     }).join("");
   }
@@ -1502,6 +1544,37 @@ function boot(initialData) {
 
   function elapsedMsFor(s) { return (s.running && s.startTs) ? Date.now() - s.startTs : s.pausedElapsedMs; }
 
+  /* Horloge de l'étape en cours (vue Programme), sous une forme commune avec celle de la vue projetée :
+     { seconds, elapsedMs, running, done }. */
+  function stepClock() {
+    if (state.index >= STEPS.length) return { seconds: 0, elapsedMs: 0, running: false, done: true };
+    return { seconds: STEPS[state.index].seconds, elapsedMs: elapsedMsFor(state), running: !!state.running, done: false };
+  }
+  /* Horloge affichée en vue projetée. Pour un déroulé minuté, c'est celle de l'étape en cours (la même que
+     la vue Programme) : Pause, Suivant et l'avance automatique agissent donc sur ce que la classe voit.
+     Pour une checklist ou une leçon (pas d'étape minutée), c'est le minuteur de cours (projTimer).
+     Avant, la vue projetée recopiait une seule fois le temps restant de l'étape dans projTimer, puis les
+     deux horloges vivaient chacune de leur côté : après « Suivant », le titre changeait mais pas le décompte. */
+  function projFollowsSteps() { return PROFILE_KIND === "deroule" && TIMED; }
+  function projClock() {
+    if (projFollowsSteps()) return stepClock();
+    var elapsedMs = projTimer.running ? Date.now() - projTimer.startTs : projTimer.pausedElapsedMs;
+    return { seconds: projTimer.seconds, elapsedMs: elapsedMs, running: !!projTimer.running, done: elapsedMs >= projTimer.seconds * 1000 };
+  }
+  /* état du décompte, en un mot lisible de loin : « Prêt » tant que rien n'a démarré (jamais « En cours »
+     devant un minuteur à l'arrêt), « En pause » s'il a été interrompu */
+  function clockStatusText(c) {
+    if (c.done) return "Terminé";
+    if (c.running) return "En cours";
+    return c.elapsedMs > 0 ? "En pause" : "Prêt";
+  }
+  function playLabelText(c) { return c.running ? "Pause" : (c.elapsedMs > 0 && !c.done ? "Reprendre" : "Démarrer"); }
+  function playIconHtml(c) {
+    return c.running
+      ? fillIcon('<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>')
+      : fillIcon('<path d="M8 5v14l11-7L8 5Z"/>');
+  }
+
   function advance() {
     state.index += 1;
     state.pausedElapsedMs = 0;
@@ -1525,11 +1598,13 @@ function boot(initialData) {
           '<div class="progress-track" id="progress-track" hidden><div class="progress-fill" id="progress-fill"></div></div>' +
           '<h1 id="app-title" contenteditable="true" spellcheck="false" title="Cliquez pour renommer"></h1>' +
         "</div>" +
+        /* une seule sortie de la vue projetée, à l'écart de Pause et Suivant (voir quitPresentation()) : visible uniquement en vue projetée */
+        '<button class="ctrl-btn labeled" id="btn-quit-present" title="Quitter la présentation (Échap)" hidden>' + svg("sortie") + '<span class="ctrl-label">Quitter la présentation</span></button>' +
         '<div class="controls">' +
           /* trois groupes (déroulement / vues / plus) : « Recommencer » est rangé dans le menu « Plus », loin de « Étape suivante » */
           '<div class="ctrl-group" role="group" aria-label="Déroulement">' +
             '<button class="ctrl-btn primary labeled" id="btn-play" title="Démarrer" aria-label="Démarrer ou mettre en pause"></button>' +
-            '<button class="ctrl-btn" id="btn-skip" title="Étape suivante (→)" aria-label="Passer à l’étape suivante">' + svg("next") + "</button>" +
+            '<button class="ctrl-btn" id="btn-skip" title="Étape suivante (→)" aria-label="Passer à l’étape suivante">' + svg("next") + '<span class="ctrl-label">Suivant</span></button>' +
           "</div>" +
           '<div class="ctrl-group" role="group" aria-label="Vues">' +
             '<button class="ctrl-btn labeled" id="btn-projected" title="Vue projetée (F)" aria-label="Projeter : afficher la vue projetée">' + svg("exposes") + '<span class="ctrl-label">Projeter</span></button>' +
@@ -1540,6 +1615,7 @@ function boot(initialData) {
             '<button class="ctrl-btn labeled" id="btn-more" aria-haspopup="menu" aria-expanded="false" aria-controls="more-menu" title="Plus d’options">' + svg("more") + '<span class="ctrl-label">Plus</span></button>' +
             '<div class="more-menu" id="more-menu" role="menu" aria-label="Plus d’options" hidden>' +
               '<button class="more-item" role="menuitem" id="btn-home">' + svg("accueil") + "<span>Accueil</span></button>" +
+              '<button class="more-item" role="menuitem" id="btn-proj-edit" hidden>' + svg("pencil") + "<span>Modifier devoirs et infos</span></button>" +
               '<button class="more-item" role="menuitem" id="btn-help">' + svg("help") + "<span>Guide d’utilisation</span></button>" +
               '<button class="more-item" role="menuitem" id="btn-theme"></button>' +
               '<button class="more-item" role="menuitem" id="btn-sound"></button>' +
@@ -1591,6 +1667,8 @@ function boot(initialData) {
   var btnTheme = document.getElementById("btn-theme");
   var btnSound = document.getElementById("btn-sound");
   var btnProjected = document.getElementById("btn-projected");
+  var btnQuitPresent = document.getElementById("btn-quit-present");
+  var btnProjEdit = document.getElementById("btn-proj-edit");
   var editorWrap = document.getElementById("editor-wrap");
   var toolsWrap = document.getElementById("tools-wrap");
   var homeWrap = document.getElementById("home-wrap");
@@ -1763,6 +1841,7 @@ function boot(initialData) {
     if (PROFILE_KIND === "lecon") {
       /* une "leçon" n'a pas de déroulé minuté : elle ouvre directement en vue projetée */
       currentView = "projected";
+      PRESENTING = true;
       projTimer.running = true;
       projTimer.startTs = Date.now();
       projTimer.pausedElapsedMs = 0;
@@ -1872,7 +1951,7 @@ function boot(initialData) {
         lastRenderedIndex = -1;
         if (currentView === "timer") render(true);
       }
-      showToast("Minuteur de « " + p.title + " » réinitialisé.");
+      showToast("Minuteur de « " + p.title + " » remis au début.");
     });
   }
 
@@ -2057,6 +2136,56 @@ function boot(initialData) {
     reader.readAsText(file);
   }
 
+  /* Menu « Plus » d'une carte de programme (accueil) : même comportement que le menu « Plus » de l'en-tête.
+     Un seul ouvert à la fois ; il se ferme au clic ailleurs, à Échap (le focus revient sur « Plus ») ou après
+     un choix ; flèches haut/bas pour passer d'une action à l'autre. Il reste dans l'écran et s'ouvre vers le
+     haut quand la place manque (dernière carte de la liste, petit écran). */
+  function closeCardMenus(returnFocus) {
+    Array.prototype.forEach.call(homeWrap.querySelectorAll(".card-menu:not([hidden])"), function (menu) {
+      menu.hidden = true;
+      var btn = menu.parentNode.querySelector(".profile-more");
+      if (!btn) return;
+      btn.setAttribute("aria-expanded", "false");
+      if (returnFocus) btn.focus();
+    });
+  }
+  function openCardMenu(btn, menu) {
+    closeCardMenus(false);
+    menu.hidden = false;
+    btn.setAttribute("aria-expanded", "true");
+    menu.classList.remove("drop-up");
+    var r = btn.getBoundingClientRect();
+    /* aligné sur le bouton, mais ramené dans l'écran s'il dépasserait à droite (ou à gauche sur téléphone) */
+    var left = Math.max(8, Math.min(r.left, window.innerWidth - 8 - menu.offsetWidth));
+    menu.style.left = (left - menu.parentNode.getBoundingClientRect().left) + "px";
+    if (r.bottom + 8 + menu.offsetHeight > window.innerHeight && r.top - 8 - menu.offsetHeight > 0) menu.classList.add("drop-up");
+    var firstItem = menu.querySelector(".more-item:not([disabled])");
+    if (firstItem) firstItem.focus();
+  }
+  function focusCardMore(id) {
+    Array.prototype.forEach.call(homeWrap.querySelectorAll(".profile-card"), function (card) {
+      if (card.getAttribute("data-id") !== id) return;
+      var btn = card.querySelector(".profile-more");
+      if (btn) btn.focus();
+    });
+  }
+  document.addEventListener("click", function (e) {
+    if (e.target.closest && e.target.closest(".card-more-wrap")) return;
+    closeCardMenus(false);
+  });
+  homeWrap.addEventListener("keydown", function (e) {
+    var menu = homeWrap.querySelector(".card-menu:not([hidden])");
+    if (!menu) return;
+    if (e.key === "Escape") { e.preventDefault(); closeCardMenus(true); return; }
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+    var items = Array.prototype.slice.call(menu.querySelectorAll(".more-item:not([disabled])"));
+    if (!items.length) return;
+    e.preventDefault();
+    var i = items.indexOf(document.activeElement);
+    i = e.key === "ArrowDown" ? (i + 1) % items.length : (i <= 0 ? items.length - 1 : i - 1);
+    items[i].focus();
+  });
+
   function renderHome() {
     var validIds = {};
     profiles.forEach(function (p) { validIds[p.id] = true; });
@@ -2072,16 +2201,23 @@ function boot(initialData) {
               '<div class="profile-card-meta">' + (p.updatedAt ? "Modifié le " + fmtDate(p.updatedAt) : "") + " · " +
                 (p.kind === "lecon" ? "Leçon (vue projetée)" : (p.steps ? p.steps.length : 0) + " étape(s)") + "</div>" +
             "</div>" +
+            /* deux commandes visibles par carte : « Ouvrir » (ce qu'on fait presque toujours) et un menu « Plus »
+               pour le reste — au lieu de sept boutons par carte. « Supprimer » y est séparé et en rouge. */
             '<div class="profile-card-actions">' +
-              '<div class="profile-card-order">' +
-                '<button class="row-btn profile-up" title="Monter"' + (i === 0 ? " disabled" : "") + ">" + svg("up", "icon-mini") + "</button>" +
-                '<button class="row-btn profile-down" title="Descendre"' + (i === profiles.length - 1 ? " disabled" : "") + ">" + svg("down", "icon-mini") + "</button>" +
+              '<button class="action-btn primary profile-open" aria-label="Ouvrir ' + esc(p.title) + '">Ouvrir</button>' +
+              '<div class="more-wrap card-more-wrap">' +
+                '<button class="row-btn row-labeled profile-more" aria-haspopup="menu" aria-expanded="false" aria-controls="card-menu-' + i + '" aria-label="Plus d’actions pour ' + esc(p.title) + '">' + svg("more") + "<span>Plus</span></button>" +
+                '<div class="more-menu card-menu" id="card-menu-' + i + '" role="menu" aria-label="Actions pour ' + esc(p.title) + '" hidden>' +
+                  '<button class="more-item profile-duplicate" role="menuitem">' + svg("copy") + "<span>Dupliquer</span></button>" +
+                  '<button class="more-item profile-export" role="menuitem">' + svg("download") + "<span>Sauvegarder dans un fichier</span></button>" +
+                  /* libellé qui dit ce qui se passe : « Réinitialiser » seul laissait croire qu'on effaçait le programme */
+                  (p.kind === "lecon" ? "" :
+                    '<button class="more-item profile-reset-timer" role="menuitem">' + svg("restart") + "<span>" + (p.timed === false ? "Revenir à la première étape" : "Remettre le minuteur au début") + "</span></button>") +
+                  '<button class="more-item profile-up" role="menuitem"' + (i === 0 ? " disabled" : "") + ">" + svg("up") + "<span>Monter dans la liste</span></button>" +
+                  '<button class="more-item profile-down" role="menuitem"' + (i === profiles.length - 1 ? " disabled" : "") + ">" + svg("down") + "<span>Descendre dans la liste</span></button>" +
+                  '<button class="more-item danger profile-delete" role="menuitem">' + svg("trash") + "<span>Supprimer</span></button>" +
+                "</div>" +
               "</div>" +
-              '<button class="action-btn primary profile-open" title="Ouvrir">Ouvrir</button>' +
-              '<button class="row-btn row-labeled profile-duplicate" title="Dupliquer ce programme">' + svg("copy", "icon-mini") + "<span>Dupliquer</span></button>" +
-              '<button class="row-btn row-labeled profile-export" title="Sauvegarder ce programme (fichier)">' + svg("download", "icon-mini") + "<span>Sauvegarder</span></button>" +
-              '<button class="row-btn row-labeled profile-reset-timer" title="Réinitialiser le minuteur (sans ouvrir le programme)">' + svg("restart", "icon-mini") + "<span>Réinitialiser</span></button>" +
-              '<button class="row-btn row-labeled profile-delete" title="Supprimer ce programme">' + svg("trash", "icon-mini") + "<span>Supprimer</span></button>" +
             "</div>" +
           "</div>";
         }).join("")
@@ -2159,14 +2295,24 @@ function boot(initialData) {
     Array.prototype.forEach.call(homeWrap.querySelectorAll(".profile-card"), function (card) {
       var id = card.getAttribute("data-id");
       card.querySelector(".profile-open").addEventListener("click", function () { openProfile(id); });
-      card.querySelector(".profile-duplicate").addEventListener("click", function () { duplicateProfile(id); });
-      card.querySelector(".profile-export").addEventListener("click", function () { exportProfile(id); });
-      card.querySelector(".profile-reset-timer").addEventListener("click", function () { resetProfileTimer(id); });
-      card.querySelector(".profile-delete").addEventListener("click", function () { deleteProfile(id); });
-      var upBtn = card.querySelector(".profile-up");
-      if (!upBtn.disabled) upBtn.addEventListener("click", function () { reorderProfile(id, -1); });
-      var downBtn = card.querySelector(".profile-down");
-      if (!downBtn.disabled) downBtn.addEventListener("click", function () { reorderProfile(id, 1); });
+      var moreBtn = card.querySelector(".profile-more");
+      var menu = card.querySelector(".card-menu");
+      moreBtn.addEventListener("click", function () {
+        if (menu.hidden) openCardMenu(moreBtn, menu); else closeCardMenus(true);
+      });
+      /* un choix referme d'abord le menu et rend le focus à « Plus » : c'est là que la fenêtre de
+         confirmation (Supprimer, Remettre au début) le rendra si on annule */
+      function menuAction(selector, fn) {
+        var item = card.querySelector(selector);
+        if (item) item.addEventListener("click", function () { closeCardMenus(true); fn(); });
+      }
+      menuAction(".profile-duplicate", function () { duplicateProfile(id); });
+      menuAction(".profile-export", function () { exportProfile(id); });
+      menuAction(".profile-reset-timer", function () { resetProfileTimer(id); });
+      menuAction(".profile-delete", function () { deleteProfile(id); });
+      /* après un déplacement, la liste est redessinée : le focus revient sur le « Plus » de la même carte */
+      menuAction(".profile-up", function () { reorderProfile(id, -1); focusCardMore(id); });
+      menuAction(".profile-down", function () { reorderProfile(id, 1); focusCardMore(id); });
       card.querySelector(".profile-select").addEventListener("change", function (e) {
         if (e.target.checked) selectedProfileIds[id] = true; else delete selectedProfileIds[id];
         var btn = document.getElementById("home-export-selection");
@@ -2183,11 +2329,20 @@ function boot(initialData) {
     return m + ":" + (s < 10 ? "0" : "") + s;
   }
 
+  /* En vue projetée, le bouton pilote l'horloge affichée (voir projClock()) ; il disparaît s'il n'y a rien
+     à mettre en pause (checklist ou leçon dont le bloc « Minuteur de cours » est masqué). */
   function updatePlayButton() {
-    btnPlay.hidden = !TIMED || currentView === "home";
-    if (!TIMED) return;
-    btnPlay.innerHTML = (state.running ? fillIcon('<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>') : fillIcon('<path d="M8 5v14l11-7L8 5Z"/>')) +
-      '<span class="ctrl-label">' + (state.running ? "Pause" : "Démarrer") + "</span>";
+    var onProjected = currentView === "projected";
+    var show = currentView !== "home" && (onProjected ? (projFollowsSteps() || getProjectedBlockVisible(COURSE_TIMER_BLOCK_KEY)) : TIMED);
+    btnPlay.hidden = !show;
+    if (!show) return;
+    var c = onProjected ? projClock() : stepClock();
+    btnPlay.disabled = c.done && (!onProjected || projFollowsSteps()); /* programme terminé : plus rien à démarrer */
+    var label = playLabelText(c);
+    if (btnPlay.getAttribute("data-state") === label) return; /* ne réécrit le bouton que si son libellé change */
+    btnPlay.setAttribute("data-state", label);
+    btnPlay.title = label;
+    btnPlay.innerHTML = playIconHtml(c) + '<span class="ctrl-label">' + label + "</span>";
   }
 
   function tasksBlockHtml(step) {
@@ -2265,14 +2420,40 @@ function boot(initialData) {
       "</div>"
     );
   }
+  /* Focus des fenêtres « détail d'étape » et « guide » (comme askConfirm) : à l'ouverture il va sur « Fermer »,
+     Tab reste dans la fenêtre, et à la fermeture il revient d'où il venait. Sans cela, au clavier, on
+     restait derrière la fenêtre. Ouverte depuis le menu « Plus » (qui se referme), elle rend le focus à « Plus ». */
+  var modalReturnFocus = null;
+  function focusIntoModal(closeBtnId) {
+    var from = document.activeElement;
+    modalReturnFocus = (from && moreMenu.contains(from)) ? btnMore : from;
+    var closeBtn = document.getElementById(closeBtnId);
+    if (closeBtn) closeBtn.focus();
+  }
+  function restoreModalFocus() {
+    if (modalReturnFocus && modalReturnFocus.focus && document.body.contains(modalReturnFocus)) {
+      try { modalReturnFocus.focus(); } catch (e) {}
+    }
+    modalReturnFocus = null;
+  }
+  function trapTabIn(overlayId, e) {
+    if (e.key !== "Tab") return;
+    var els = document.querySelectorAll("#" + overlayId + " button, #" + overlayId + " input, #" + overlayId + " a[href]");
+    if (!els.length) return;
+    var first = els[0], last = els[els.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
   function closeStepDetail() {
     var el = document.getElementById("step-detail-overlay");
     if (!el) return;
     el.remove();
     document.removeEventListener("keydown", stepDetailKeydown);
+    restoreModalFocus();
   }
   function stepDetailKeydown(e) {
     if (e.key === "Escape") closeStepDetail();
+    else trapTabIn("step-detail-overlay", e);
   }
   function wireStepDetailTrigger(el, step) {
     if (!el) return;
@@ -2287,13 +2468,14 @@ function boot(initialData) {
     var overlay = document.createElement("div");
     overlay.id = "step-detail-overlay";
     overlay.className = "step-modal-backdrop";
-    overlay.innerHTML = '<div class="step-modal" role="dialog" aria-modal="true">' + stepDetailHtml(step) + "</div>";
+    overlay.innerHTML = '<div class="step-modal" role="dialog" aria-modal="true" aria-label="Détail de l’étape ' + esc(step.label) + '">' + stepDetailHtml(step) + "</div>";
     overlay.addEventListener("click", function (e) {
       if (e.target === overlay) closeStepDetail();
     });
     document.body.appendChild(overlay);
     document.getElementById("step-detail-close").addEventListener("click", closeStepDetail);
     document.addEventListener("keydown", stepDetailKeydown);
+    focusIntoModal("step-detail-close");
   }
 
   /* help guide popup — same overlay pattern as the step detail popup above
@@ -2307,9 +2489,11 @@ function boot(initialData) {
     if (!el) return;
     el.remove();
     document.removeEventListener("keydown", helpGuideKeydown);
+    restoreModalFocus();
   }
   function helpGuideKeydown(e) {
     if (e.key === "Escape") closeHelpGuide();
+    else trapTabIn("help-overlay", e);
   }
   function openHelpGuide() {
     closeHelpGuide();
@@ -2330,6 +2514,7 @@ function boot(initialData) {
     document.body.appendChild(overlay);
     document.getElementById("help-close").addEventListener("click", closeHelpGuide);
     document.addEventListener("keydown", helpGuideKeydown);
+    focusIntoModal("help-close");
   }
   btnHelp.addEventListener("click", openHelpGuide);
 
@@ -2411,7 +2596,7 @@ function boot(initialData) {
             '<div class="active-top">' +
               '<div class="active-icon">' + svg(step.icon) + "</div>" +
               '<div class="active-meta">' +
-                '<span class="active-step-of">En cours</span>' +
+                '<span class="active-step-of" id="active-status">' + clockStatusText(stepClock()) + "</span>" +
                 '<span class="active-label">' + esc(step.label) + "</span>" +
               "</div>" +
             "</div>" +
@@ -2429,7 +2614,7 @@ function boot(initialData) {
             "</div>" +
             '<div class="jump-row"' + (loadActionsVisible() ? "" : " hidden") + '>' +
               '<span class="unit-label">Avancer à la minute</span>' +
-              '<input type="number" id="jump-minute" min="0" max="' + Math.floor(step.seconds / 60) + '" value="0" />' +
+              '<input type="number" id="jump-minute" min="0" max="' + Math.floor(step.seconds / 60) + '" value="0" aria-label="Minute de l’étape à atteindre" />' +
               '<button class="action-btn" id="jump-go">' + svg("next") + " Avancer</button>" +
             "</div>" +
           "</div>" +
@@ -2461,12 +2646,12 @@ function boot(initialData) {
     }
 
     updatePlayButton();
+    var clockNow = stepClock();
+    var statusEl = document.getElementById("active-status");
+    var statusText = clockStatusText(clockNow);
+    if (statusEl && statusEl.textContent !== statusText) statusEl.textContent = statusText;
     var inlinePlay = document.getElementById("inline-play");
-    if (inlinePlay) {
-      inlinePlay.innerHTML = state.running
-        ? fillIcon('<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>') + " Pause"
-        : fillIcon('<path d="M8 5v14l11-7L8 5Z"/>') + " Démarrer";
-    }
+    if (inlinePlay) inlinePlay.innerHTML = playIconHtml(clockNow) + " " + playLabelText(clockNow);
 
     if (remaining <= 0 && state.running) {
       advance();
@@ -2483,7 +2668,7 @@ function boot(initialData) {
       return;
     }
     upcoming.innerHTML = rest.map(function (s, i) {
-      return '<div class="chip has-step-detail' + (s.isPause ? " pause-chip" : "") + '" data-upcoming-index="' + i + '">' +
+      return '<div class="chip has-step-detail' + (s.isPause ? " pause-chip" : "") + '" data-upcoming-index="' + i + '" role="button" tabindex="0" aria-label="Voir le détail de l’étape ' + esc(s.label) + '">' +
         '<div class="chip-icon">' + svg(s.icon) + "</div>" +
         '<div class="chip-label">' + esc(s.label) + "</div>" +
         (TIMED && SHOW_TIME ? '<div class="chip-duration">' + Math.round(s.seconds / 60) + " min</div>" : "") +
@@ -2493,15 +2678,21 @@ function boot(initialData) {
     for (var i = 0; i < chips.length; i++) {
       (function (s) {
         chips[i].addEventListener("click", function () { openStepDetail(s); });
+        chips[i].addEventListener("keydown", function (e) {
+          if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+          e.preventDefault();
+          openStepDetail(s);
+        });
       })(rest[i]);
     }
   }
 
   function togglePlay() {
-    /* accessible aussi depuis la vue projetée (raccourcis clavier Espace/Flèche, voir
-       plus bas) : "étape suivante"/"démarrer-pause" agissent alors sur le même state/STEPS
-       qui pilotent le titre de contexte de la vue projetée — pas sur projTimer, le compte
-       à rebours du cours, qui est un objet totalement indépendant. */
+    /* accessible aussi depuis la vue projetée (boutons de l'en-tête et raccourcis clavier
+       Espace/Flèche, voir plus bas) : "étape suivante"/"démarrer-pause" agissent sur le même
+       state/STEPS, qui pilotent à la fois le titre de contexte et — pour un déroulé minuté —
+       le décompte projeté (voir projClock()). Le minuteur de cours (projTimer) ne sert plus
+       qu'aux checklists et aux leçons : c'est toggleProjClock() qui choisit la bonne horloge. */
     if ((currentView !== "timer" && currentView !== "projected") || state.index >= STEPS.length || !TIMED) return;
     if (state.running) {
       state.pausedElapsedMs = elapsedMsFor(state);
@@ -2512,6 +2703,7 @@ function boot(initialData) {
     }
     saveTimerState();
     render(false);
+    refreshProjectedLive();
   }
 
   function skip() {
@@ -2519,6 +2711,7 @@ function boot(initialData) {
     advance();
     saveTimerState();
     render(true);
+    refreshProjectedLive();
   }
 
   function goBack() {
@@ -2528,14 +2721,16 @@ function boot(initialData) {
     state.startTs = state.running ? Date.now() : null;
     saveTimerState();
     render(true);
+    refreshProjectedLive();
   }
 
   function restart() {
-    if (currentView !== "timer") return;
+    if (currentView !== "timer" && currentView !== "projected") return;
     state = { index: 0, running: false, startTs: null, pausedElapsedMs: 0 };
     saveTimerState();
     lastRenderedIndex = -1;
     render(true);
+    refreshProjectedLive();
   }
 
   function jumpToMinute(minutes) {
@@ -2549,7 +2744,9 @@ function boot(initialData) {
     render(true);
   }
 
-  btnPlay.addEventListener("click", togglePlay);
+  btnPlay.addEventListener("click", function () {
+    if (currentView === "projected") toggleProjClock(); else togglePlay();
+  });
   btnSkip.addEventListener("click", skip);
   /* « Recommencer » efface la progression : on demande confirmation (focus sur « Annuler ») */
   btnRestart.addEventListener("click", function () {
@@ -2638,12 +2835,7 @@ function boot(initialData) {
       goBack();
     } else {
       e.preventDefault();
-      togglePlay();
-    }
-    if (currentView === "projected") {
-      var contextTitleEl = document.getElementById("proj-context-title");
-      if (contextTitleEl) contextTitleEl.textContent = projectedContextTitle();
-      updateProjStepProgress();
+      if (currentView === "projected") toggleProjClock(); else togglePlay();
     }
   });
   btnHome.addEventListener("click", goHome);
@@ -2671,20 +2863,53 @@ function boot(initialData) {
       render(true);
     } else {
       currentView = "projected";
-      var adaptedSeconds = null;
-      if (PROFILE_KIND === "deroule" && TIMED && state.index < STEPS.length) {
-        var remainingNow = STEPS[state.index].seconds - elapsedMsFor(state) / 1000;
-        if (remainingNow > 0) adaptedSeconds = remainingNow;
+      PRESENTING = true; /* « Projeter » ouvre toujours l'affichage pour la classe, jamais la modification des devoirs */
+      if (!projFollowsSteps()) {
+        /* checklist : pas d'étape minutée, la vue projetée lance le minuteur de cours. Un déroulé minuté,
+           lui, affiche directement l'horloge de l'étape en cours (voir projClock()) : rien à recopier. */
+        projTimer.running = true;
+        projTimer.startTs = Date.now();
+        projTimer.pausedElapsedMs = 0;
+        projTimer.seconds = (COURSE_MINUTES > 0 ? COURSE_MINUTES : 45) * 60;
       }
-      projTimer.running = true;
-      projTimer.startTs = Date.now();
-      projTimer.pausedElapsedMs = 0;
-      projTimer.seconds = adaptedSeconds !== null ? adaptedSeconds : (COURSE_MINUTES > 0 ? COURSE_MINUTES : 45) * 60;
       showOnly("projected");
       renderProjected();
     }
   }
-  btnProjected.addEventListener("click", toggleProjectedView);
+  btnProjected.addEventListener("click", function () {
+    toggleProjectedView();
+    /* « Projeter » vient de disparaître de la barre : le focus va sur la commande principale de la présentation */
+    if (currentView === "projected") (btnPlay.hidden ? btnQuitPresent : btnPlay).focus();
+  });
+
+  /* La seule sortie de la vue projetée : retour direct au Programme (ou à l'accueil pour une leçon, qui n'a
+     pas de vue Programme). Remplace l'ancien duo « Retour » + « Quitter la présentation », dont le second
+     menait à une vue intermédiaire avec les champs de saisie. */
+  function quitPresentation() {
+    if (currentView !== "projected") return;
+    if (PROFILE_KIND === "lecon") { goHome(); return; }
+    toggleProjectedView();
+    btnProjected.focus();
+  }
+  btnQuitPresent.addEventListener("click", quitPresentation);
+  btnProjEdit.addEventListener("click", function () { if (currentView === "projected") setPresenting(false); });
+
+  /* Sur téléphone (≤ 520 px), « Plus » rejoint Démarrer et Suivant sur la première rangée (barre en 2 rangées au
+     lieu de 3). On déplace le groupe dans le DOM plutôt qu'avec la propriété CSS « order » : l'ordre de tabulation
+     reste ainsi celui qu'on voit à l'écran. En vue projetée, le groupe « Vues » ne contient plus qu'« Outils » :
+     « Plus » y reste en dernier, à la même place que sur grand écran. */
+  var controlsEl = moreWrap.parentNode;
+  var viewsGroupEl = btnProjected.parentNode;
+  var narrowMq = window.matchMedia ? window.matchMedia("(max-width: 520px)") : null;
+  function placeMoreMenu() {
+    var first = !!(narrowMq && narrowMq.matches) && currentView !== "projected";
+    if (first) { if (moreWrap.nextSibling !== viewsGroupEl) controlsEl.insertBefore(moreWrap, viewsGroupEl); }
+    else if (controlsEl.lastChild !== moreWrap) controlsEl.appendChild(moreWrap);
+  }
+  if (narrowMq) {
+    if (narrowMq.addEventListener) narrowMq.addEventListener("change", placeMoreMenu);
+    else if (narrowMq.addListener) narrowMq.addListener(placeMoreMenu);
+  }
 
   function showOnly(which) {
     stage.hidden = which !== "timer";
@@ -2696,20 +2921,24 @@ function boot(initialData) {
     document.getElementById("main-row").hidden = which !== "timer";
     var onHome = which === "home";
     var onProjected = which === "projected";
-    document.body.classList.toggle("presenting", PRESENTING && onProjected);
-    btnPlay.hidden = onHome || onProjected;
-    btnSkip.hidden = onHome || onProjected;
-    btnRestart.hidden = onHome || onProjected;
+    /* la classe "presenting" habille l'en-tête pour toute la vue projetée (titre masqué, commandes à droite,
+       « Quitter la présentation » à gauche), y compris pendant la modification des devoirs et infos */
+    document.body.classList.toggle("presenting", onProjected);
+    var hasSteps = PROFILE_KIND !== "lecon";
+    /* Pause/Reprendre, Suivant et Recommencer restent disponibles en vue projetée : on pilote la séance
+       sans quitter ce que la classe regarde. Une leçon n'a pas d'étapes : ni Suivant ni Recommencer. */
+    btnSkip.hidden = onHome || (onProjected && !hasSteps);
+    btnSkip.classList.toggle("labeled", onProjected); /* « Suivant » écrit en toutes lettres devant la classe */
+    btnRestart.hidden = onHome || (onProjected && !hasSteps);
     btnEdit.hidden = onHome || (onProjected && PROFILE_KIND !== "lecon");
     btnTools.hidden = onHome;
     btnHome.hidden = onHome;
-    if (btnProjected) {
-      btnProjected.hidden = onHome || PROFILE_KIND === "lecon";
-      btnProjected.classList.toggle("is-active", onProjected);
-      var projLabel = btnProjected.querySelector(".ctrl-label");
-      if (projLabel) projLabel.textContent = onProjected ? "Retour" : "Projeter";
-      btnProjected.setAttribute("aria-label", onProjected ? "Retour à la vue Programme" : "Projeter : afficher la vue projetée");
-    }
+    btnProjected.hidden = onHome || onProjected || PROFILE_KIND === "lecon";
+    btnQuitPresent.hidden = !onProjected;
+    btnProjEdit.hidden = !onProjected;
+    placeMoreMenu();
+    updatePlayButton();
+    if (onProjected) btnSkip.style.visibility = state.index >= STEPS.length ? "hidden" : "visible";
     appTitleEl.contentEditable = onHome ? "false" : "true";
     if (onHome) {
       eyebrow.textContent = "";
@@ -2786,7 +3015,7 @@ function boot(initialData) {
     return '<div class="custom-block-tool-row" data-bi="' + bi + '" data-ti="' + ti + '">' +
       '<span class="custom-tool-type-label">' + esc(typeLabel) + "</span>" +
       body +
-      '<button class="row-btn custom-tool-delete" title="Retirer cet outil">' + svg("trash") + "</button>" +
+      '<button class="row-btn custom-tool-delete" title="Retirer cet outil" aria-label="Retirer cet outil">' + svg("trash") + "</button>" +
     "</div>";
   }
   function customBlockEditorHtml(block, bi, blockCount, students) {
@@ -2796,9 +3025,9 @@ function boot(initialData) {
       '<div class="editor-row-main">' +
         '<input type="text" class="text-input custom-block-name" placeholder="Nom du bloc (ex. Léa, Groupe A…)" value="' + esc(block.name) + '" aria-label="Nom du bloc" />' +
         '<div class="row-btns">' +
-          '<button class="row-btn custom-block-up" title="Monter"' + (bi === 0 ? " disabled" : "") + ">" + svg("up") + "</button>" +
-          '<button class="row-btn custom-block-down" title="Descendre"' + (bi === blockCount - 1 ? " disabled" : "") + ">" + svg("down") + "</button>" +
-          '<button class="row-btn custom-block-delete" title="Supprimer ce bloc">' + svg("trash") + "</button>" +
+          '<button class="row-btn custom-block-up" title="Monter ce bloc" aria-label="Monter ce bloc"' + (bi === 0 ? " disabled" : "") + ">" + svg("up") + "</button>" +
+          '<button class="row-btn custom-block-down" title="Descendre ce bloc" aria-label="Descendre ce bloc"' + (bi === blockCount - 1 ? " disabled" : "") + ">" + svg("down") + "</button>" +
+          '<button class="row-btn custom-block-delete" title="Supprimer ce bloc" aria-label="Supprimer ce bloc">' + svg("trash") + "</button>" +
         "</div>" +
       "</div>" +
       '<div class="custom-block-tools-editor">' + toolsHtml + "</div>" +
@@ -2932,7 +3161,7 @@ function boot(initialData) {
             : "") +
           groupSelectHtml(s.taskGroups || [], t.groupId || "") +
           studentAssignSelectHtml(draftStudents, t.studentIds) +
-          '<button class="row-btn task-delete" title="Supprimer cette tâche">' + svg("trash") + "</button>" +
+          '<button class="row-btn task-delete" title="Supprimer cette tâche" aria-label="Supprimer cette tâche">' + svg("trash") + "</button>" +
         "</div>";
       }).join("");
       var groupsHtml = '<div class="groups-editor" data-groups-for="' + i + '">' +
@@ -2952,9 +3181,9 @@ function boot(initialData) {
             : "") +
           '<label class="pause-toggle"><input type="checkbox" class="row-pause"' + (s.isPause ? " checked" : "") + ' /> Pause</label>' +
           '<div class="row-btns">' +
-            '<button class="row-btn row-up" title="Monter"' + (i === 0 ? " disabled" : "") + ">" + svg("up") + "</button>" +
-            '<button class="row-btn row-down" title="Descendre"' + (i === draftSteps.length - 1 ? " disabled" : "") + ">" + svg("down") + "</button>" +
-            '<button class="row-btn row-delete" title="Supprimer"' + (draftSteps.length <= 1 ? " disabled" : "") + ">" + svg("trash") + "</button>" +
+            '<button class="row-btn row-up" title="Monter cette étape" aria-label="Monter l’étape ' + (i + 1) + '"' + (i === 0 ? " disabled" : "") + ">" + svg("up") + "</button>" +
+            '<button class="row-btn row-down" title="Descendre cette étape" aria-label="Descendre l’étape ' + (i + 1) + '"' + (i === draftSteps.length - 1 ? " disabled" : "") + ">" + svg("down") + "</button>" +
+            '<button class="row-btn row-delete" title="Supprimer cette étape" aria-label="Supprimer l’étape ' + (i + 1) + '"' + (draftSteps.length <= 1 ? " disabled" : "") + ">" + svg("trash") + "</button>" +
           "</div>" +
         "</div>" +
         '<button class="tasks-toggle' + (taskCount ? " has-tasks" : "") + '" data-toggle-tasks="' + i + '">' + svg("equipe") + " Tâches" + (taskCount ? " (" + taskCount + ")" : "") + "</button>" +
@@ -2974,7 +3203,7 @@ function boot(initialData) {
         '<label class="pause-toggle"><input type="checkbox" class="student-nogroup"' + (s.noGroup ? " checked" : "") + ' /> À ne pas attribuer à un groupe (tirage aléatoire)</label>' +
         '<input type="text" class="text-input student-tag" placeholder="Étiquette (optionnel)" value="' + esc(s.tag) + '" aria-label="Étiquette de séparation" style="max-width:170px" />' +
         studentGroupSelectHtml(draftStudentGroups, s.groupId || "") +
-        '<button class="row-btn student-delete" title="Supprimer">' + svg("trash") + "</button>" +
+        '<button class="row-btn student-delete" title="Supprimer cet élève" aria-label="Supprimer cet élève">' + svg("trash") + "</button>" +
       "</div>";
     }).join("") || '<p class="editor-hint" style="margin:0;">Aucun élève pour l’instant.</p>';
 
@@ -3027,7 +3256,7 @@ function boot(initialData) {
               "<li><code>@</code> suivi d’un code (ex. <code>@A</code>) pour séparer entre eux les élèves qui partagent le même code, autant que possible, dans les groupes</li>" +
             "</ul>" +
             '<p class="editor-hint" style="margin:0 0 6px;">Exemple : <code>Léa Dupont @A !</code></p>' +
-            '<textarea id="student-import" class="text-input" rows="4" placeholder="Léa Dupont @A !&#10;Sam #&#10;Nina"></textarea>' +
+            '<textarea id="student-import" class="text-input" rows="4" placeholder="Léa Dupont @A !&#10;Sam #&#10;Nina" aria-label="Liste d’élèves à importer, un élève par ligne"></textarea>' +
             '<div class="editor-actions" style="justify-content:flex-start; margin-top:8px;">' +
               '<button class="action-btn primary" id="student-import-go">' + svg("plus") + " Ajouter à la liste</button>" +
             "</div>" +
@@ -3415,7 +3644,7 @@ function boot(initialData) {
       return '<div class="hw-extra-row" data-hwi="' + i + '">' +
         '<input type="text" class="text-input hw-extra-text" value="' + esc(item.text) + '" placeholder="Devoir supplémentaire" aria-label="Devoir supplémentaire" />' +
         '<label class="pause-toggle">À rendre le <input type="date" class="hw-extra-date" value="' + esc(item.dueDate || "") + '" aria-label="Date de rendu" /></label>' +
-        '<button class="row-btn hw-extra-delete" title="Supprimer">' + svg("trash") + "</button>" +
+        '<button class="row-btn hw-extra-delete" title="Supprimer ce devoir" aria-label="Supprimer ce devoir">' + svg("trash") + "</button>" +
       "</div>";
     }).join("");
 
@@ -3430,7 +3659,7 @@ function boot(initialData) {
             '<div class="editor-rows" id="hwinfo-extra-rows">' + extraRowsHtml + "</div>" +
             '<button class="add-row-btn" id="hwinfo-extra-add">' + svg("plus") + " Ajouter un devoir</button>" +
             "<h3 style=\"font-size:0.9rem;margin-top:6px;\">Infos importantes</h3>" +
-            '<textarea class="text-input" id="hwinfo-course-info" rows="3" placeholder="Informations à afficher pour la classe">' + esc(courseInfo || "") + "</textarea>" +
+            '<textarea class="text-input" id="hwinfo-course-info" rows="3" placeholder="Informations à afficher pour la classe" aria-label="Infos importantes">' + esc(courseInfo || "") + "</textarea>" +
           "</div>"
         : "");
   }
@@ -3511,22 +3740,48 @@ function boot(initialData) {
   }
 
   function projTimerLoop() {
-    var elapsedMs = projTimer.running ? Date.now() - projTimer.startTs : projTimer.pausedElapsedMs;
-    var remaining = projTimer.seconds - elapsedMs / 1000;
-    var pct = Math.min(100, (elapsedMs / (projTimer.seconds * 1000)) * 100);
+    var c = projClock(); /* étape en cours (déroulé minuté) ou minuteur de cours (checklist, leçon) */
+    var remaining = c.seconds - c.elapsedMs / 1000;
+    var pct = (c.done || c.seconds <= 0) ? 100 : Math.min(100, (c.elapsedMs / (c.seconds * 1000)) * 100);
     var fillEl = document.getElementById("proj-fill");
     var cdEl = document.getElementById("proj-countdown");
     if (fillEl) fillEl.style.width = pct.toFixed(1) + "%";
     if (cdEl) cdEl.textContent = fmt(Math.max(0, remaining));
+    var statusEl = document.getElementById("proj-status");
+    var statusText = clockStatusText(c);
+    if (statusEl && statusEl.textContent !== statusText) statusEl.textContent = statusText;
     var playBtn = document.getElementById("proj-play");
-    if (playBtn) {
-      playBtn.innerHTML = projTimer.running
-        ? fillIcon('<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>') + " Pause"
-        : fillIcon('<path d="M8 5v14l11-7L8 5Z"/>') + " Démarrer";
-    }
-    if (remaining <= 0 && projTimer.running) {
+    if (playBtn) playBtn.innerHTML = playIconHtml(c) + " " + playLabelText(c);
+    if (!projFollowsSteps() && remaining <= 0 && projTimer.running) {
       projTimer.running = false;
+      projTimer.pausedElapsedMs = projTimer.seconds * 1000; /* reste à 0:00 (« Terminé ») au lieu de réafficher la durée entière */
     }
+  }
+  /* Démarrer / Pause / Reprendre de l'horloge affichée en vue projetée (bouton de l'en-tête, touche Espace,
+     outil « Minuteur de cours ») */
+  function toggleProjClock() {
+    if (projFollowsSteps()) { togglePlay(); return; }
+    if (projTimer.running) {
+      projTimer.pausedElapsedMs = Date.now() - projTimer.startTs;
+      projTimer.running = false;
+    } else {
+      if (projTimer.pausedElapsedMs >= projTimer.seconds * 1000) projTimer.pausedElapsedMs = 0; /* terminé : on repart du début */
+      projTimer.startTs = Date.now() - projTimer.pausedElapsedMs;
+      projTimer.running = true;
+    }
+    refreshProjectedLive();
+  }
+  /* repeint tout ce qui bouge en vue projetée sans reconstruire le DOM : décompte, statut, titre de
+     contexte, « Étape X sur Y », boutons Pause et Suivant de l'en-tête. Appelée par la boucle à 250 ms
+     et après chaque action (Pause, Suivant, Recommencer…). */
+  function refreshProjectedLive() {
+    if (currentView !== "projected") return;
+    projTimerLoop();
+    var contextTitleEl = document.getElementById("proj-context-title");
+    if (contextTitleEl) contextTitleEl.textContent = projectedContextTitle();
+    updateProjStepProgress();
+    updatePlayButton();
+    btnSkip.style.visibility = state.index >= STEPS.length ? "hidden" : "visible";
   }
 
   function persistProjectedFields() { persist(); }
@@ -3728,9 +3983,9 @@ function boot(initialData) {
         return '<div class="task-chip">' + esc(item.text) + (extraDue ? ' <span style="color:var(--muted);font-weight:400;">— à rendre le ' + esc(extraDue) + "</span>" : "") + "</div>";
       }
       return '<div class="task-row" data-hi="' + i + '">' +
-        '<input type="text" class="text-input proj-hw-extra-text" value="' + esc(item.text) + '" placeholder="Devoir supplémentaire" />' +
+        '<input type="text" class="text-input proj-hw-extra-text" value="' + esc(item.text) + '" placeholder="Devoir supplémentaire" aria-label="Devoir supplémentaire" />' +
         '<label class="pause-toggle">À rendre le <input type="date" class="proj-hw-extra-date" value="' + esc(item.dueDate || "") + '" aria-label="Date de rendu" /></label>' +
-        '<button class="row-btn proj-hw-extra-delete" title="Supprimer">' + svg("trash") + "</button>" +
+        '<button class="row-btn proj-hw-extra-delete" title="Supprimer ce devoir" aria-label="Supprimer ce devoir">' + svg("trash") + "</button>" +
       "</div>";
     }).join("");
     var noHomeworkAtAll = !homeworkAuto.length && !(COURSE_HOMEWORK_EXTRA || []).length;
@@ -3753,8 +4008,8 @@ function boot(initialData) {
     projectedWrap.innerHTML =
       '<div class="editor projected-dashboard' + (PRESENTING ? " presenting-view" : "") + '">' +
         (PRESENTING
-          ? '<div class="editor-topbar proj-presenting-bar"><h2 class="sr-only">Vue projetée</h2><button class="action-btn" id="proj-present-btn" aria-pressed="true" title="Revenir à la vue avec les champs de saisie (touche Échap)">Quitter la présentation</button></div>'
-          : '<div class="editor-topbar"><h2>Vue projetée</h2><button class="action-btn" id="proj-present-btn" aria-pressed="false" title="Masque les champs de saisie et agrandit le texte pour la classe">Mode présentation</button></div>') +
+          ? '<h2 class="sr-only">Vue projetée</h2>'
+          : '<div class="editor-topbar"><h2>Modifier devoirs et infos</h2><button class="action-btn primary" id="proj-present-btn" title="Revenir à l’affichage pour la classe (touche Échap)">' + svg("check") + " Terminer</button></div>") +
         '<div class="projected-context-title" id="proj-context-title">' + esc(projectedContextTitle()) + "</div>" +
         projStepProgressHtml() +
         '<div class="projected-top-row">' +
@@ -3764,8 +4019,9 @@ function boot(initialData) {
                   '<div class="card-fill" id="proj-fill" style="width:0%"></div>' +
                   '<div class="card-content" style="align-items:center;">' +
                     '<div class="projected-timer-head">' +
+                      '<span class="timer-status" id="proj-status"></span>' +
                       (SHOW_COURSE_TIME
-                        ? '<div class="timer-row"><span class="countdown" id="proj-countdown">' + fmt(projTimer.seconds) + '</span><span class="countdown-label">restant</span></div>'
+                        ? '<div class="timer-row"><span class="countdown" id="proj-countdown"></span><span class="countdown-label">restant</span></div>'
                         : '<div class="projected-timer-hidden-note">Temps non affiché</div>') +
                     "</div>" +
                   "</div>" +
@@ -3799,7 +4055,7 @@ function boot(initialData) {
                 "<h3>Infos importantes</h3>" +
                 (PRESENTING
                   ? '<div class="proj-info-text">' + esc(COURSE_INFO) + "</div>"
-                  : '<textarea class="text-input" id="proj-info" placeholder="Informations à afficher pour la classe">' + esc(COURSE_INFO) + "</textarea>") +
+                  : '<textarea class="text-input" id="proj-info" placeholder="Informations à afficher pour la classe" aria-label="Infos importantes">' + esc(COURSE_INFO) + "</textarea>") +
               "</div>"
             : "") +
           visibleCustomBlocks.map(customBlockHtml).join("") +
@@ -3818,29 +4074,33 @@ function boot(initialData) {
       }
     }
 
-    projTimerLoop();
+    refreshProjectedLive();
     wireProjectedEvents();
   }
 
-  /* bascule du mode présentation : la classe "presenting" sur <body> masque le titre de l'en-tête (voir CSS) ;
-     showOnly() la retire dès qu'on quitte la vue projetée */
+  /* PRESENTING = true : l'affichage pour la classe (par défaut, à chaque « Projeter »). false : la modification
+     en direct des devoirs et des infos (menu Plus → « Modifier devoirs et infos »), d'où « Terminer » ramène à
+     l'affichage pour la classe. L'en-tête ne change pas entre les deux : seul le tableau de bord est redessiné. */
   function setPresenting(v) {
     PRESENTING = !!v;
-    savePresenting(PRESENTING);
-    document.body.classList.toggle("presenting", PRESENTING && currentView === "projected");
     renderProjected();
-    var presentBtn = document.getElementById("proj-present-btn");
-    if (presentBtn) presentBtn.focus();
+    var focusEl = PRESENTING ? btnMore : (projectedWrap.querySelector("#proj-hw-extra-add, #proj-info") || document.getElementById("proj-present-btn"));
+    if (focusEl) focusEl.focus();
   }
+  /* Échap, du plus local au plus global : termine la modification des devoirs, sinon referme l'outil ouvert,
+     sinon quitte la présentation (retour au Programme). Une leçon n'a pas de vue Programme : Échap n'y
+     renvoie pas à l'accueil, il faut le bouton « Quitter la présentation ». */
   document.addEventListener("keydown", function (e) {
-    if (e.key !== "Escape" || !PRESENTING || currentView !== "projected") return;
-    if (document.querySelector('[role="dialog"]')) return; /* une fenêtre ouverte (aide, détail d'étape) garde son propre Échap */
-    setPresenting(false);
+    if (e.key !== "Escape" || currentView !== "projected") return;
+    if (document.querySelector('[role="dialog"]')) return; /* une fenêtre ouverte (aide, détail d'étape, confirmation) garde son propre Échap */
+    if (!PRESENTING) { setPresenting(true); return; }
+    if (toolsOpen) { closeToolsPanel(); btnTools.focus(); return; }
+    if (PROFILE_KIND !== "lecon") quitPresentation();
   });
 
   function wireProjectedEvents() {
     var presentBtn = document.getElementById("proj-present-btn");
-    if (presentBtn) presentBtn.addEventListener("click", function () { setPresenting(!PRESENTING); });
+    if (presentBtn) presentBtn.addEventListener("click", function () { setPresenting(true); });
     var infoEl = document.getElementById("proj-info");
     if (infoEl) {
       infoEl.addEventListener("input", function (e) { COURSE_INFO = e.target.value; });
@@ -3960,13 +4220,17 @@ function boot(initialData) {
   function renderProjTimerSettings() {
     stopSonometre();
     stopQuickMinuteur();
+    /* déroulé minuté : le bloc affiche l'étape en cours (voir projClock()). Pas de « durée totale du cours »
+       à régler ici (la durée de chaque étape se règle dans l'éditeur) ; « Redémarrer » relance l'étape. */
+    var followsSteps = projFollowsSteps();
     toolsWrap.innerHTML =
       '<div class="editor">' + toolTopbar("Minuteur de cours") +
         '<div class="active-actions">' +
           '<button class="action-btn primary" id="proj-play"></button>' +
-          '<button class="action-btn" id="proj-restart">' + svg("restart") + " Redémarrer</button>" +
+          '<button class="action-btn" id="proj-restart">' + svg("restart") + (followsSteps ? " Recommencer l’étape" : " Redémarrer") + "</button>" +
         "</div>" +
-        (SHOW_COURSE_TIME
+        (followsSteps ? '<p class="editor-hint" style="margin:0;">Le décompte suit l’étape en cours. La durée de chaque étape se règle avec « Modifier », dans la vue Programme.</p>' : "") +
+        (SHOW_COURSE_TIME && !followsSteps
           ? '<div class="jump-row">' +
               '<span class="unit-label">Durée totale du cours</span>' +
               '<input type="number" id="proj-minutes" min="1" max="300" value="' + Math.max(1, Math.round(projTimer.seconds / 60)) + '" aria-label="Durée totale du cours en minutes" />' +
@@ -3978,23 +4242,22 @@ function boot(initialData) {
     wireToolBack();
     projTimerLoop();
     var playBtn = document.getElementById("proj-play");
-    if (playBtn) playBtn.addEventListener("click", function () {
-      if (projTimer.running) {
-        projTimer.pausedElapsedMs = Date.now() - projTimer.startTs;
-        projTimer.running = false;
-      } else {
-        projTimer.startTs = Date.now() - projTimer.pausedElapsedMs;
-        projTimer.running = true;
-      }
-      projTimerLoop();
-    });
+    if (playBtn) playBtn.addEventListener("click", toggleProjClock);
     var restartBtn = document.getElementById("proj-restart");
     if (restartBtn) restartBtn.addEventListener("click", function () {
-      projTimer.seconds = (COURSE_MINUTES > 0 ? COURSE_MINUTES : 45) * 60;
-      projTimer.pausedElapsedMs = 0;
-      projTimer.startTs = Date.now();
-      projTimer.running = true;
-      projTimerLoop();
+      if (projFollowsSteps()) {
+        if (state.index >= STEPS.length) return;
+        state.pausedElapsedMs = 0;
+        state.startTs = Date.now();
+        state.running = true;
+        saveTimerState();
+      } else {
+        projTimer.seconds = (COURSE_MINUTES > 0 ? COURSE_MINUTES : 45) * 60;
+        projTimer.pausedElapsedMs = 0;
+        projTimer.startTs = Date.now();
+        projTimer.running = true;
+      }
+      refreshProjectedLive();
     });
     var minutesEl = document.getElementById("proj-minutes");
     if (minutesEl) minutesEl.addEventListener("change", function (e) {
@@ -4083,7 +4346,7 @@ function boot(initialData) {
           : "") +
         groupSelectHtml(draftLeconTaskGroups || [], t.groupId || "") +
         studentAssignSelectHtml(draftStudents, t.studentIds) +
-        '<button class="row-btn task-delete" title="Supprimer cette tâche">' + svg("trash") + "</button>" +
+        '<button class="row-btn task-delete" title="Supprimer cette tâche" aria-label="Supprimer cette tâche">' + svg("trash") + "</button>" +
       "</div>";
     }).join("");
     var groupsHtml = '<div class="groups-editor" data-groups-for="lecon">' +
@@ -4098,7 +4361,7 @@ function boot(initialData) {
         '<label class="pause-toggle"><input type="checkbox" class="student-nogroup"' + (s.noGroup ? " checked" : "") + ' /> À ne pas attribuer à un groupe (tirage aléatoire)</label>' +
         '<input type="text" class="text-input student-tag" placeholder="Étiquette (optionnel)" value="' + esc(s.tag) + '" aria-label="Étiquette de séparation" style="max-width:170px" />' +
         studentGroupSelectHtml(draftStudentGroups, s.groupId || "") +
-        '<button class="row-btn student-delete" title="Supprimer">' + svg("trash") + "</button>" +
+        '<button class="row-btn student-delete" title="Supprimer cet élève" aria-label="Supprimer cet élève">' + svg("trash") + "</button>" +
       "</div>";
     }).join("") || '<p class="editor-hint" style="margin:0;">Aucun élève pour l’instant.</p>';
 
@@ -4465,7 +4728,7 @@ function boot(initialData) {
               return '<button class="feu-light' + (f.color === c ? " on " + c : "") + '" data-feu="' + c + '" aria-label="' + c + '"></button>';
             }).join("") +
           "</div>" +
-          '<div class="feu-current-label" contenteditable="true" spellcheck="false">' + esc(f.labels[f.color]) + "</div>" +
+          '<div class="feu-current-label" contenteditable="true" spellcheck="false" role="textbox" aria-label="Libellé de la couleur affichée">' + esc(f.labels[f.color]) + "</div>" +
         "</div>" +
       "</div>";
     wireToolBack();
@@ -4664,6 +4927,14 @@ function boot(initialData) {
   }
 
   /* ---- Tirage au sort / groupes aléatoires ---- */
+  /* ouvre l'éditeur du programme directement sur la liste des élèves (depuis l'état vide du tirage au sort) */
+  function openStudentsEditor() {
+    if (PROFILE_KIND === "lecon") openLeconEditor(); else openEditor();
+    var addBtn = document.getElementById("student-add");
+    if (!addBtn) return;
+    if (addBtn.scrollIntoView) addBtn.scrollIntoView({ block: "center" });
+    addBtn.focus();
+  }
   function eligibleForDraw() {
     return STUDENTS.filter(function (s) { return s.name && !s.excluded; });
   }
@@ -4779,6 +5050,7 @@ function boot(initialData) {
      l'espace libéré quand #tirage-settings est masqué) */
   function fitTirageDisplay(box) {
     if (!box) return;
+    if (box.classList.contains("is-message")) { box.style.fontSize = ""; return; } /* une phrase, pas un nom : taille de texte normale (CSS) */
     var h = box.clientHeight, w = box.clientWidth;
     if (!h || !w) return;
     var size = Math.max(16, Math.min(h * 0.5, w * 0.14, 72));
@@ -4813,6 +5085,20 @@ function boot(initialData) {
       saveTirage(t);
     }
     var mode = (t.mode === "groupes" || t.mode === "fixes") ? t.mode : "individuel";
+    /* Deux situations à ne pas confondre : aucun élève à tirer (liste vide, ou tous exclus) — on dit quoi
+       faire et on y mène ; ou tous les élèves déjà tirés — on propose de recommencer. Avant, les deux
+       affichaient « Liste épuisée », y compris pour une liste où il n'y avait jamais eu personne. */
+    var hasNamedStudents = STUDENTS.some(function (s) { return !!s.name; });
+    function tirageEmptyHtml(excludedMsg) {
+      return '<div class="tirage-empty">' +
+        '<p class="tirage-empty-title">' + (hasNamedStudents ? excludedMsg : "Aucun élève dans la liste.") + "</p>" +
+        '<p class="editor-hint">' + (hasNamedStudents
+          ? "Modifiez la liste des élèves pour en rendre au moins un disponible."
+          : "Ajoutez des élèves au programme pour commencer.") + "</p>" +
+        '<button class="action-btn primary tirage-open-students" type="button">' + svg(hasNamedStudents ? "pencil" : "plus") + (hasNamedStudents ? " Modifier la liste des élèves" : " Ajouter des élèves") + "</button>" +
+      "</div>";
+    }
+    var allDrawn = names.length > 0 && !t.remaining.length;
 
     toolsWrap.innerHTML =
       '<div class="editor">' + toolTopbar("Tirage au sort", !!t.settingsVisible) +
@@ -4826,18 +5112,21 @@ function boot(initialData) {
           '<button class="action-btn" id="tirage-resethistory">' + svg("restart") + " Réinitialiser l’historique</button>" +
         "</div>" +
         '<div id="tirage-panel-individuel"' + (mode === "individuel" ? "" : " hidden") + '>' +
-          '<div class="tirage-display" id="tirage-display">' + (t.remaining && t.remaining.length ? "Prêt" : "Liste épuisée") + "</div>" +
-          '<div class="editor-actions" style="justify-content:flex-start;">' +
-            '<button class="action-btn primary" id="tirage-go"' + (names.length ? "" : " disabled") + ">" + svg("de") + " Tirer</button>" +
-          "</div>" +
-          (names.length ? tirageHistoryHtml(names, t.counts) : "") +
+          (names.length
+            ? '<div class="tirage-display' + (allDrawn ? " is-message" : "") + '" id="tirage-display">' + (allDrawn ? "Tous les élèves ont été tirés." : "Prêt") + "</div>" +
+              '<div class="editor-actions" style="justify-content:flex-start;">' +
+                '<button class="action-btn primary" id="tirage-go">' + (allDrawn ? svg("restart") + " Recommencer le tirage" : svg("de") + " Tirer") + "</button>" +
+              "</div>" +
+              tirageHistoryHtml(names, t.counts)
+            : tirageEmptyHtml("Tous les élèves sont exclus du tirage.")) +
         "</div>" +
         '<div id="tirage-panel-groupes"' + (mode === "groupes" ? "" : " hidden") + '>' +
           '<div class="group-controls">' +
             '<span class="unit-label">Nombre de groupes</span>' +
-            '<input type="number" id="group-count" min="2" max="' + Math.max(2, groupPool.length) + '" value="2" />' +
+            '<input type="number" id="group-count" min="2" max="' + Math.max(2, groupPool.length) + '" value="2" aria-label="Nombre de groupes" />' +
             '<button class="action-btn primary" id="group-go"' + (groupPool.length ? "" : " disabled") + ">" + svg("de") + " Former les groupes</button>" +
           "</div>" +
+          (groupPool.length ? "" : tirageEmptyHtml("Tous les élèves sont exclus des groupes.")) +
           '<div class="group-grid" id="group-results"></div>' +
         "</div>" +
         '<div id="tirage-panel-fixes"' + (mode === "fixes" ? "" : " hidden") + '>' +
@@ -4872,13 +5161,31 @@ function boot(initialData) {
       });
     });
 
-    document.getElementById("tirage-resetpool").addEventListener("click", function () {
+    Array.prototype.forEach.call(toolsWrap.querySelectorAll(".tirage-open-students"), function (btn) {
+      btn.addEventListener("click", openStudentsEditor);
+    });
+
+    /* met l'affichage et le bouton en accord avec ce qu'il reste à tirer. keepName : on vient de tirer un
+       nom, il reste affiché ; seul le bouton change (« Recommencer le tirage » si c'était le dernier). */
+    function paintTirageState(keepName) {
+      var displayEl = document.getElementById("tirage-display");
+      var goEl = document.getElementById("tirage-go");
+      if (!displayEl || !goEl) return;
+      var left = (loadTirage().remaining || []).length;
+      if (!keepName) {
+        displayEl.classList.toggle("is-message", !left);
+        displayEl.textContent = left ? "Prêt" : "Tous les élèves ont été tirés.";
+        fitTirageDisplay(displayEl);
+      }
+      goEl.innerHTML = left ? svg("de") + " Tirer" : svg("restart") + " Recommencer le tirage";
+    }
+    function refillTiragePool() {
       var t2 = loadTirage();
       t2.remaining = names.slice();
       saveTirage(t2);
-      var displayEl = document.getElementById("tirage-display");
-      if (displayEl) displayEl.textContent = names.length ? "Prêt" : "Liste épuisée";
-    });
+      paintTirageState(false);
+    }
+    document.getElementById("tirage-resetpool").addEventListener("click", refillTiragePool);
 
     document.getElementById("tirage-resethistory").addEventListener("click", function () {
       askConfirm("Réinitialiser l’historique des tirages (nombre de fois tiré par élève)\u202F?", "Réinitialiser", function () {
@@ -4893,8 +5200,10 @@ function boot(initialData) {
     if (goBtn) goBtn.addEventListener("click", function () {
       var t2 = loadTirage();
       var pool = t2.remaining || [];
-      if (!pool.length) { document.getElementById("tirage-display").textContent = "Liste épuisée"; return; }
+      if (!pool.length) { refillTiragePool(); return; } /* le bouton dit alors « Recommencer le tirage » */
       var display = document.getElementById("tirage-display");
+      display.classList.remove("is-message");
+      fitTirageDisplay(display);
       var ticks = 0;
       var maxTicks = 14;
       var timer = setInterval(function () {
@@ -4912,6 +5221,8 @@ function boot(initialData) {
           saveTirage(t3);
           var histEl = toolsWrap.querySelector(".tirage-history");
           if (histEl) histEl.outerHTML = tirageHistoryHtml(names, t3.counts);
+          paintTirageState(true);
+          if (!t3.remaining.length) announce(finalName + ". Tous les élèves ont été tirés.");
         }
       }, 80);
     });
@@ -4994,9 +5305,9 @@ function boot(initialData) {
           "</div>" +
           '<div class="group-controls">' +
             '<span class="unit-label">Nombre de faces</span>' +
-            '<input type="number" id="de-faces" min="2" max="100" value="' + d.faces + '" />' +
+            '<input type="number" id="de-faces" min="2" max="100" value="' + d.faces + '" aria-label="Nombre de faces" />' +
             '<span class="unit-label">Nombre de dés</span>' +
-            '<input type="number" id="de-count" min="1" max="6" value="' + d.diceCount + '" />' +
+            '<input type="number" id="de-count" min="1" max="6" value="' + d.diceCount + '" aria-label="Nombre de dés" />' +
           "</div>" +
         "</div>" +
         '<div class="de-grid" id="de-grid">' + deResultsHtml(new Array(d.diceCount).fill("–")) + "</div>" +
@@ -5137,7 +5448,7 @@ function boot(initialData) {
         "</div>" +
         '<div class="mood-echo" id="mood-echo"></div>' +
         '<div class="mood-settings"' + (d.settingsVisible ? "" : " hidden") + '>' +
-          '<div class="field"><span>Modalité</span><select id="mood-mode-select">' +
+          '<div class="field"><span>Modalité</span><select id="mood-mode-select" aria-label="Modalité">' +
             MOOD_MODES.map(function (m) { return '<option value="' + m.key + '"' + (m.key === modeDef.key ? " selected" : "") + ">" + esc(m.label) + "</option>"; }).join("") +
           "</select></div>" +
           '<button class="action-btn" id="mood-reset">' + svg("restart") + " Réinitialiser les compteurs (cette modalité)</button>" +
@@ -5222,7 +5533,7 @@ function boot(initialData) {
         '<div class="sono-gauge-track"><div class="sono-gauge-fill" id="sono-fill"></div></div>' +
         '<div class="sono-controls"' + (s.settingsVisible ? "" : " hidden") + '>' +
           '<div class="sono-row"><label class="switch"><input type="checkbox" id="sono-alert"' + (s.alertEnabled ? " checked" : "") + ' /> Alerte sonore si le seuil est dépassé (sinon jauge visuelle seule)</label></div>' +
-          '<div class="sono-row"><span class="unit-label">Seuil</span><input type="range" id="sono-threshold" min="10" max="95" value="' + s.threshold + '" /><span class="unit-label" id="sono-threshold-val">' + s.threshold + "%</span></div>" +
+          '<div class="sono-row"><span class="unit-label">Seuil</span><input type="range" id="sono-threshold" min="10" max="95" value="' + s.threshold + '" aria-label="Seuil d’alerte, en pour cent" /><span class="unit-label" id="sono-threshold-val">' + s.threshold + "%</span></div>" +
           '<div class="editor-actions" style="justify-content:flex-start;"><button class="action-btn primary" id="sono-start">' + svg("ondes") + " Activer le micro</button></div>" +
         "</div>" +
       "</div>";
@@ -5444,11 +5755,8 @@ function boot(initialData) {
     }
     render(false);
     if (currentView === "projected") {
-      projTimerLoop();
+      refreshProjectedLive();
       customBlockTimersTick();
-      var contextTitleEl = document.getElementById("proj-context-title");
-      if (contextTitleEl) contextTitleEl.textContent = projectedContextTitle();
-      updateProjStepProgress();
     }
   }, 250);
 }
