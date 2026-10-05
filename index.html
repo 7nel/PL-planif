@@ -568,7 +568,9 @@ function boot(initialData) {
        reste est en retrait d'autant. Le texte garde donc toujours sa place à côté de la case ; les étiquettes
        (Obligatoire, À choix…) le suivent sur la même ligne s'il reste de la place, sinon passent dessous,
        alignées sur le texte. Avant, un texte trop long partait entier à la ligne et laissait la case seule. */
-    .projected-columns .plan-task { position: relative; line-height: 1.2; padding-left: calc(var(--cb, 22px) + var(--cb-gap, 8px)); }
+    /* (.appearance-panel dans le sélecteur : il doit l'emporter sur « .plan-group-members .plan-task { padding: 2px 0 } »,
+       plus bas, sinon le retrait saute dans les groupes de choix et la case recouvre le texte) */
+    .projected-columns .appearance-panel .plan-task { position: relative; line-height: 1.2; padding-left: calc(var(--cb, 22px) + var(--cb-gap, 8px)); }
     .projected-columns .plan-task > input[type="checkbox"] {
       position: absolute; left: 0; top: calc(3px + (1.2em - var(--cb, 22px)) / 2); margin: 0;
       font-size: inherit; /* pour que « 1.2em » ci-dessus soit la hauteur de ligne du texte de la tâche, pas celle du champ */
