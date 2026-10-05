@@ -671,6 +671,24 @@ function boot(initialData) {
     }
 
     #print-plan { display: none; }
+    /* cibles tactiles : 44 px au minimum (accueil, éditeur, outils) — usage au toucher, en cours de séance */
+    .row-btn { width: 44px; height: 44px; }
+    .row-btn svg { width: 22px; height: 22px; }
+    .profile-card-order { gap: 4px; }
+    .profile-card-order .row-btn { width: 44px; height: 24px; }
+    .profile-card-order .row-btn svg { width: 16px; height: 16px; }
+    .row-btn .icon-mini { width: 22px; height: 22px; }
+    .profile-card-order .row-btn .icon-mini { width: 16px; height: 16px; }
+    .profile-delete { margin-left: 14px; } /* écarté de « Réinitialiser » : action destructive */
+    .profile-card-actions { flex-wrap: wrap; }
+    @media (max-width: 520px) { .profile-delete { margin-left: 0; } }
+    .action-btn, .tasks-toggle, .add-task-btn, .add-row-btn { min-height: 44px; }
+    .appearance-reset { min-height: 44px; padding-inline: 8px; }
+    .help-toggle { position: relative; width: 28px; height: 28px; }
+    .help-toggle::after { content: ""; position: absolute; inset: -8px; } /* zone de toucher de 44 px autour de la pastille de 28 px */
+    .switch { min-height: 44px; }
+    input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--accent); flex-shrink: 0; }
+    input[type="text"], input[type="number"], input[type="date"], input[type="color"], select { min-height: 44px; }
     @media print {
       html { font-size: 100%; } /* l'impression garde l'échelle d'origine : sinon le plan déborderait des pages */
       .page, .toast, .storage-banner { display: none !important; }
@@ -3664,7 +3682,7 @@ function boot(initialData) {
     projectedWrap.innerHTML =
       '<div class="editor projected-dashboard' + (PRESENTING ? " presenting-view" : "") + '">' +
         (PRESENTING
-          ? '<div class="editor-topbar proj-presenting-bar"><button class="action-btn" id="proj-present-btn" aria-pressed="true" title="Revenir à la vue avec les champs de saisie (touche Échap)">Quitter la présentation</button></div>'
+          ? '<div class="editor-topbar proj-presenting-bar"><h2 class="sr-only">Vue projetée</h2><button class="action-btn" id="proj-present-btn" aria-pressed="true" title="Revenir à la vue avec les champs de saisie (touche Échap)">Quitter la présentation</button></div>'
           : '<div class="editor-topbar"><h2>Vue projetée</h2><button class="action-btn" id="proj-present-btn" aria-pressed="false" title="Masque les champs de saisie et agrandit le texte pour la classe">Mode présentation</button></div>') +
         '<div class="projected-context-title" id="proj-context-title">' + esc(projectedContextTitle()) + "</div>" +
         projStepProgressHtml() +
