@@ -90,7 +90,10 @@ function boot(initialData) {
     .ctrl-btn.labeled { width: auto; min-width: 48px; padding-inline: 14px 16px; gap: 8px; font: inherit; font-weight: 700; font-size: 1rem; }
     .ctrl-btn.primary { background: var(--accent); color: var(--surface); border-color: transparent; }
     .ctrl-btn.is-active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
-    .ctrl-btn:disabled { opacity: 0.45; cursor: default; }
+    /* Bouton désactivé : texte gris (--muted) sur fond --surface, sans transparence. L'opacité réduite rendait le
+       libellé presque illisible (« Démarrer » en fin de programme : 1,4:1). L'état se lit à la couleur du texte
+       et, pour un bouton principal, à la perte de son fond coloré. Même règle pour .action-btn et .more-item. */
+    .ctrl-btn:disabled, .ctrl-btn.primary:disabled { background: var(--surface); color: var(--muted); border-color: var(--border); cursor: default; }
     .ctrl-btn:disabled:hover { transform: none; }
     /* Démarrer / Pause / Reprendre : largeur de libellé fixe, pour que les boutons voisins ne se décalent pas quand le libellé change */
     #btn-play .ctrl-label { display: inline-block; text-align: left; }
@@ -117,7 +120,7 @@ function boot(initialData) {
     .more-item:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
     .more-item svg { width: 22px; height: 22px; flex: none; }
     .more-item.danger { color: var(--red); margin-top: 6px; border-top: 1px solid var(--border); border-radius: 0 0 12px 12px; padding-top: 10px; }
-    .more-item:disabled { opacity: 0.45; cursor: default; }
+    .more-item:disabled { color: var(--muted); cursor: default; }
     .more-item:disabled:hover { background: transparent; }
     .more-menu.drop-up { top: auto; bottom: calc(100% + 8px); } /* menu d'une carte en bas de liste : s'ouvre vers le haut */
     .card-menu { min-width: min(330px, calc(100vw - 32px)); } /* « Remettre le minuteur au début » tient sur une ligne */
@@ -196,7 +199,7 @@ function boot(initialData) {
     .active-card.is-pause .action-btn.primary { background: var(--pause-strong); }
     .action-btn svg { width: 14px; height: 14px; }
     .action-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-    .action-btn:disabled { opacity: 0.5; cursor: default; }
+    .action-btn:disabled { background: var(--surface); color: var(--muted); border-color: var(--border); cursor: default; }
 
     #upcoming-block { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 6px; overflow: auto; }
     .upcoming-label { flex: 0 0 auto; color: var(--muted); font-weight: 700; font-size: 0.9rem; }
@@ -2580,6 +2583,7 @@ function boot(initialData) {
         if (lastRenderedIndex !== -2) announce("Programme terminé.");
         lastRenderedIndex = -2;
       }
+      updatePlayButton(); /* programme terminé : « Démarrer » passe à l'état désactivé, comme en vue projetée */
       return;
     }
 
