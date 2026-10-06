@@ -19,7 +19,7 @@ LICENSE      # CC BY-NC 4.0
 CLAUDE.md    # ce fichier
 ```
 
-Pas de `package.json`, pas de bundler, pas de tests, pas de linter, pas de `.gitignore`.
+Pas de `package.json`, pas de bundler, pas de tests, pas de linter. Un `.gitignore` écarte `.DS_Store`, `.claude/`, `.codex/`, `.impeccable/` et `impeccable-report.json`.
 
 ## Technologies
 
