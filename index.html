@@ -77,6 +77,7 @@ function boot(initialData) {
       border: 1px dashed transparent;
     }
     #app-title:hover, #app-title:focus { border-color: var(--border); }
+    #app-title:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
     .controls { display: flex; gap: 10px clamp(14px, 2.4vw, 36px); flex-wrap: wrap; justify-content: flex-start; }
     .ctrl-group { display: flex; gap: 8px; flex-wrap: wrap; }
     .ctrl-btn {
@@ -132,7 +133,12 @@ function boot(initialData) {
     }
     .active-card.is-pause { background: var(--pause-soft); }
     @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    @media (prefers-reduced-motion: reduce) { .active-card { animation: none; } }
+    /* mouvement réduit : le remplissage de la jauge reste (il porte l'information), les effets décoratifs partent */
+    @media (prefers-reduced-motion: reduce) {
+      .active-card { animation: none; }
+      .ctrl-btn:hover { transform: none; }
+      .progress-fill { transition: none; }
+    }
 
     .card-fill {
       position: absolute; inset: 0; width: 0%;
@@ -631,6 +637,7 @@ function boot(initialData) {
       padding: 2px 8px; border-radius: 8px; border: 1px dashed transparent; outline: none;
     }
     .feu-current-label:hover, .feu-current-label:focus { border-color: var(--border); }
+    .feu-current-label:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
     /* mode de travail */
     .mode-current {
