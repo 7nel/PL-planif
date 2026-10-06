@@ -292,7 +292,7 @@ function boot(initialData) {
     .acc-summary { font-size: 0.9rem; color: var(--muted); }
     details.acc[open] .acc-summary { display: none; }
     @media (prefers-reduced-motion: reduce) { details.acc > summary::after { transition: none; } }
-    .editor-hint { color: var(--muted); font-size: 0.9rem; margin: -6px 0 4px; max-width: 72ch; } /* longueur de ligne bornée (repère typographique usuel : 45 à 75 caractères) */
+    .editor-hint { color: var(--muted); font-size: 0.9rem; margin: -6px 0 4px; max-width: 62ch; } /* longueur de ligne bornée (repère typographique usuel : 45 à 75 caractères ; 72ch donnait ~87 signes par ligne avec cette police) */
     .editor-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .back-link {
       display: flex; align-items: center; gap: 6px; border: none; background: none; color: var(--muted);
@@ -2796,9 +2796,11 @@ function boot(initialData) {
     if (state.running) {
       state.pausedElapsedMs = elapsedMsFor(state);
       state.running = false; state.startTs = null;
+      announce("Minuteur en pause.");
     } else {
       state.startTs = Date.now() - state.pausedElapsedMs;
       state.running = true;
+      announce("Minuteur en marche.");
     }
     saveTimerState();
     render(false);
