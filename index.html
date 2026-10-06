@@ -2171,23 +2171,30 @@ function boot(initialData) {
     showToast(chosen.length + " programmes téléchargés dans un seul fichier.");
   }
 
+  /* Import tolérant : un fichier abîmé ou écrit à la main ne doit ni planter ni fabriquer un programme absurde.
+     On écarte les éléments qui ne sont pas des objets, on borne les durées (60 s par défaut, 24 h au plus) et on
+     n'accepte comme texte que du texte. Un fichier de sauvegarde valide passe tel quel. */
+  function importObjects(v) { return Array.isArray(v) ? v.filter(function (x) { return x && typeof x === "object"; }) : []; }
+  function importText(v) { return typeof v === "string" ? v : (typeof v === "number" ? String(v) : ""); }
+  function importSeconds(v) { var n = Number(v); return isFinite(n) && n > 0 ? Math.min(n, 86400) : 60; }
+
   function addImportedProfile(raw) {
-    if (!raw || !Array.isArray(raw.steps) || !raw.steps.length) return null;
+    if (!raw || typeof raw !== "object" || !importObjects(raw.steps).length) return null;
     var p = {
       id: makeProfileId(),
-      title: raw.title || "Programme importé",
-      steps: raw.steps.map(function (s) {
+      title: importText(raw.title) || "Programme importé",
+      steps: importObjects(raw.steps).map(function (s) {
         return {
-          label: s.label || "", seconds: s.seconds || 60, icon: s.icon || "grid", isPause: !!s.isPause,
-          tasks: (s.tasks || []).map(function (t) { return { name: t.name || "", text: t.text || "", mandatory: t.mandatory !== false, homework: !!t.homework, dueDate: t.dueDate || "", groupId: t.groupId || "", studentIds: Array.isArray(t.studentIds) ? t.studentIds.slice() : [] }; }),
-          taskGroups: Array.isArray(s.taskGroups) ? s.taskGroups.map(function (g) { return { id: g.id || makeGroupId(), label: g.label || "", choose: g.choose > 0 ? g.choose : 1 }; }) : []
+          label: importText(s.label), seconds: importSeconds(s.seconds), icon: s.icon || "grid", isPause: !!s.isPause,
+          tasks: importObjects(s.tasks).map(function (t) { return { name: t.name || "", text: t.text || "", mandatory: t.mandatory !== false, homework: !!t.homework, dueDate: t.dueDate || "", groupId: t.groupId || "", studentIds: Array.isArray(t.studentIds) ? t.studentIds.slice() : [] }; }),
+          taskGroups: importObjects(s.taskGroups).map(function (g) { return { id: g.id || makeGroupId(), label: g.label || "", choose: g.choose > 0 ? g.choose : 1 }; })
         };
       }),
       theme: Object.assign(defaultTheme(), raw.theme || {}),
-      students: Array.isArray(raw.students) ? raw.students.map(function (s) {
+      students: importObjects(raw.students).map(function (s) {
         return { id: s.id || makeStudentId(), name: s.name || "", excluded: !!s.excluded, noGroup: !!s.noGroup, tag: s.tag || "", groupId: s.groupId || "" };
-      }) : [],
-      studentGroups: Array.isArray(raw.studentGroups) ? raw.studentGroups.map(function (g) { return { id: g.id || makeStudentGroupId(), label: g.label || "" }; }) : [],
+      }),
+      studentGroups: importObjects(raw.studentGroups).map(function (g) { return { id: g.id || makeStudentGroupId(), label: g.label || "" }; }),
       planShowDetails: typeof raw.planShowDetails === "boolean" ? raw.planShowDetails : true,
       showTime: raw.showTime !== false,
       timed: raw.timed !== false,
@@ -2209,6 +2216,7 @@ function boot(initialData) {
     if (!file) return;
     var reader = new FileReader();
     reader.onload = function () {
+      var countBefore = profiles.length; /* un lot refusé à mi-chemin ne doit rien laisser en mémoire */
       try {
         var data = JSON.parse(String(reader.result));
         var bundle = Array.isArray(data) ? data : (Array.isArray(data && data.profiles) ? data.profiles : [data]);
@@ -2223,6 +2231,7 @@ function boot(initialData) {
           : added.length + " programmes importés.");
         renderHome();
       } catch (e) {
+        profiles.length = countBefore;
         showToast("Impossible de lire ce fichier.");
       }
     };
