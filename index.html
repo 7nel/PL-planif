@@ -317,6 +317,7 @@ function boot(initialData) {
       background: var(--surface); color: var(--ink);
     }
     textarea.text-input { font-weight: 400; resize: vertical; }
+    .text-input::placeholder, textarea::placeholder { color: var(--muted); opacity: 1; } /* ≥ 4,5:1 : le gris par défaut du navigateur tombait à 3:1 en sombre */
 
     .editor-rows { display: flex; flex-direction: column; gap: 10px; }
     .editor-row { display: flex; flex-direction: column; gap: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; }
@@ -503,6 +504,7 @@ function boot(initialData) {
     #projected-wrap { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
     #projected-wrap .editor.projected-dashboard {
       flex: 1 1 auto; min-height: 0; overflow: hidden;
+      border: 0; box-shadow: none; background: transparent; /* pas de carte autour du tableau : les panneaux suffisent */
       padding: clamp(10px, 1.6vh, 22px); gap: clamp(8px, 1.2vh, 14px);
     }
     .projected-dashboard .editor-topbar { flex: 0 0 auto; }
@@ -611,7 +613,8 @@ function boot(initialData) {
     .presenting-view .projected-timer .countdown { font-size: clamp(2.4rem, min(22vh, 20cqi), 11rem); }
     .presenting-view .projected-timer .countdown-label { font-size: clamp(1rem, min(3vh, 5cqi), 1.8rem); }
     .presenting-view .projected-columns h3 { font-size: clamp(1.1rem, min(3vh, 7cqi), 1.7rem); }
-    .presenting-view .projected-tasks-panel .plan-task { font-size: clamp(1.1rem, min(3.4vh, 7.5cqi), 2rem); }
+    .presenting-view .projected-tasks-panel .plan-task { font-size: clamp(1.2rem, min(4vh, 8cqi), 2.4rem); }
+    .presenting-view .projected-tasks-panel .plan-badge { font-size: clamp(0.95rem, min(2.2vh, 4cqi), 1.35rem); padding: 2px 10px; }
     .presenting-view .projected-homework-panel .task-chip { font-size: clamp(1.1rem, min(3.2vh, 7.5cqi), 1.9rem); }
     .presenting-view .projected-tasks-panel .plan-task { --cb: clamp(22px, min(3.4vh, 8cqi), 36px); --cb-gap: clamp(8px, 1.6vh, 16px); gap: 4px var(--cb-gap); }
     /* Tâche d'une colonne projetée : la case est sortie du flux (à gauche, sur la première ligne) et tout le
@@ -3022,7 +3025,6 @@ function boot(initialData) {
     /* Pause/Reprendre, Suivant et Recommencer restent disponibles en vue projetée : on pilote la séance
        sans quitter ce que la classe regarde. Une leçon n'a pas d'étapes : ni Suivant ni Recommencer. */
     btnSkip.hidden = onHome || (onProjected && !hasSteps);
-    btnSkip.classList.toggle("labeled", onProjected); /* « Suivant » écrit en toutes lettres devant la classe */
     btnRestart.hidden = onHome || (onProjected && !hasSteps);
     btnEdit.hidden = onHome || (onProjected && PROFILE_KIND !== "lecon");
     btnTools.hidden = onHome;
