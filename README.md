@@ -8,7 +8,9 @@ Pensé pour un enseignant ou un·e éducateur·rice spécialisé·e qui prépare
 
 **En ligne (recommandé)** : si ce dépôt est publié via GitHub Pages, ouvrez simplement l'adresse du site (voir en haut de la page GitHub, ou Settings → Pages une fois activé).
 
-**En local** : téléchargez `index.html` et ouvrez-le directement dans un navigateur (double-clic, ou glisser-déposer dans une fenêtre de navigateur). Aucune installation, aucun serveur nécessaire.
+**Hors ligne et installable** : une fois le site ouvert une première fois en ligne, il fonctionne sans réseau et peut être ajouté à l'écran d'accueil (téléphone, tablette) ou installé comme une application (Chrome, Edge).
+
+**En local** : téléchargez le dépôt et ouvrez `index.html` directement dans un navigateur (double-clic). Gardez le dossier `fonts/` à côté du fichier pour retrouver les polices ; sans lui, l'application fonctionne avec les polices du système. Aucune installation, aucun serveur nécessaire.
 
 Un guide d'utilisation complet est intégré à l'application : bouton **« ? »** en haut de l'écran d'accueil.
 
@@ -18,7 +20,7 @@ Toutes les données (programmes, élèves, réglages) sont stockées uniquement 
 
 ## Polices
 
-L'application charge, via Google Fonts (CDN, pas de fichier embarqué dans ce dépôt), les polices Atkinson Hyperlegible, Lexend, Andika, Comic Neue et Quicksand — toutes sous licence libre, proposées comme options d'apparence dans l'éditeur.
+Les polices Atkinson Hyperlegible, Lexend et Andika sont fournies dans le dossier `fonts/` (licence libre SIL OFL) : aucune requête vers Google ni vers un autre service. Elles sont proposées comme options d'apparence dans l'éditeur.
 
 ## Licence
 

@@ -15,6 +15,7 @@ Ce fichier guide Claude Code pour travailler sur ce dépôt. Langue du projet : 
 ```
 index.html   # TOUTE l'application (~5200 lignes, ~310 Ko)
 README.md    # Présentation utilisateur, données, polices, licence
+sw.js, manifest.json, icon-*.png, fonts/   # hors ligne, installation, polices
 LICENSE      # CC BY-NC 4.0
 CLAUDE.md    # ce fichier
 ```
@@ -26,7 +27,8 @@ Pas de `package.json`, pas de bundler, pas de tests, pas de linter. Un `.gitigno
 - HTML/CSS/JavaScript **vanilla**, aucun framework, aucune dépendance npm.
 - JavaScript style **ES5** (`var`, `function`, concaténation de chaînes `"a" + b`), avec quelques template literals pour le CSS. `"use strict"` est actif. Reste dans ce style.
 - Stockage : `localStorage` (toujours dans `try/catch`).
-- Polices : Google Fonts via `@import` dans le CSS (Atkinson Hyperlegible, Lexend, Andika, Comic Neue, Quicksand). Seule ressource externe autorisée.
+- Polices : fichiers `.woff2` autohébergés dans `fonts/` (Atkinson Hyperlegible, Lexend, Andika), déclarés par `@font-face` dans `CSS_TEXT`. Aucune ressource externe.
+- Hors ligne : `sw.js` (cache local, aucun réseau tiers) et `manifest.json`, servis avec `index.html`. Changer `CACHE` dans `sw.js` à chaque publication qui modifie des fichiers mis en cache.
 - Icônes : SVG inline (section « icons »). Icône PWA générée via `<canvas>` en data URL.
 - Thème clair/sombre via variables CSS + `prefers-color-scheme` + attribut `data-theme` sur `:root`.
 
@@ -111,7 +113,7 @@ Test manuel = ouvrir la page dans un navigateur et exercer la fonctionnalité mo
 3. **Après chaque modification de JS**, vérifier la syntaxe avec la commande `jsc` ci-dessus. Une erreur de syntaxe casse toute l'application (page blanche).
 4. **Vérifier dans un navigateur** dès que possible (fonction touchée, écran d'accueil, éditeur, vue projetée, clair/sombre). Si tu ne peux pas tester, dis-le clairement.
 5. **Ne jamais casser les données existantes** des utilisateurs (voir rétrocompatibilité). En cas de doute sur un changement de format, demande.
-6. **Pas de réseau ni de tracking.** Ne pas ajouter de CDN de scripts, d'API, d'analytics, de service worker distant. Ne pas ajouter d'autres polices externes sans demande.
+6. **Pas de réseau ni de tracking.** Ne pas ajouter de CDN de scripts, d'API, d'analytics. Le service worker local (`sw.js`) ne met en cache que les fichiers du dépôt. Toute nouvelle police s'ajoute en fichier dans `fonts/`, jamais depuis un CDN.
 7. **Ne pas élargir le périmètre** : pas de refactor, de renommage ou de « nettoyage » non demandé. Signale plutôt les problèmes repérés.
 8. **Documentation** : si le comportement visible change, mettre à jour `HELP_GUIDE_HTML` ; si le mode d'usage, les données ou la licence changent, mettre à jour `README.md`.
 9. **Licence** : respecter CC BY-NC 4.0 ; ne pas retirer les mentions d'attribution ni introduire de code incompatible avec un usage non commercial.

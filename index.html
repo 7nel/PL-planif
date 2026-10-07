@@ -1,10 +1,14 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset='utf-8'><meta name="viewport" content="width=device-width, initial-scale=1"><title>PL-planif’</title></head><body><script>
+<!DOCTYPE html><html lang="fr"><head><meta charset='utf-8'><meta name="viewport" content="width=device-width, initial-scale=1"><title>PL-planif’</title><meta name="theme-color" content="#2f6f63"><link rel="manifest" href="manifest.json"><link rel="icon" type="image/png" sizes="32x32" href="icon-32.png"><link rel="apple-touch-icon" href="icon-180.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="PL-planif’"></head><body><script>
 function boot(initialData) {
   "use strict";
 
   /* ---------- style ---------- */
   var CSS_TEXT = `
-    @import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Lexend:wght@400;700&family=Andika:wght@400;700&family=Comic+Neue:wght@400;700&family=Quicksand:wght@400;700&display=swap');
+    @font-face { font-family: "Atkinson Hyperlegible"; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/atkinson-400.woff2) format("woff2"); }
+    @font-face { font-family: "Atkinson Hyperlegible"; font-style: normal; font-weight: 700; font-display: swap; src: url(fonts/atkinson-700.woff2) format("woff2"); }
+    @font-face { font-family: "Atkinson Hyperlegible"; font-style: italic; font-weight: 400; font-display: swap; src: url(fonts/atkinson-400-i.woff2) format("woff2"); }
+    @font-face { font-family: "Lexend"; font-style: normal; font-weight: 100 900; font-display: swap; src: url(fonts/lexend.woff2) format("woff2"); }
+    @font-face { font-family: "Andika"; font-style: normal; font-weight: 400 700; font-display: swap; src: url(fonts/andika-400.woff2) format("woff2"); }
 
     :root {
       --bg: #eff2f0;
@@ -64,6 +68,16 @@ function boot(initialData) {
     footer { flex: 0 0 auto; }
 
     header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    /* identité commune à la famille PL : monogramme, nom de l'outil, retour vers PL */
+    .pl-id { display: flex; align-items: center; gap: 6px 14px; min-width: 0; flex-wrap: wrap; }
+    .pl-name { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.1rem; line-height: 1.2; }
+    .pl-mark { width: 1.45em; height: 1.45em; flex: none; }
+    .pl-mark circle { fill: var(--accent); }
+    .pl-mark g { stroke: var(--bg); }
+    .pl-back { position: relative; color: var(--muted); font-weight: 700; font-size: 0.95rem; text-decoration: none; white-space: nowrap; }
+    .pl-back::after { content: ""; position: absolute; inset: -12px -8px; }
+    .pl-back:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+    .pl-back:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
     .heading { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
     .eyebrow { font-weight: 700; font-size: 0.9rem; color: var(--muted); }
     .progress-track {
@@ -954,7 +968,12 @@ function boot(initialData) {
          l'écran d'accueil" already uses this manifest/icon and opens in its own window. */
     } catch (e) {}
   }
-  setupPwaMeta();
+  /* servi en http(s) : manifest, icônes et service worker sont de vrais fichiers (voir <head> et sw.js).
+     Ouvert comme simple fichier local : on garde l'ancienne icône générée, juste pour l'onglet. */
+  if (location.protocol === "file:") setupPwaMeta();
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+  }
 
   /* captures Chrome/Edge's native "install this app" prompt when the browser offers one
      (only when hosted over https with a working service worker — see setupPwaMeta) so the
@@ -1035,9 +1054,7 @@ function boot(initialData) {
   var FONT_OPTIONS = [
     ["", "Atkinson Hyperlegible (par défaut)"],
     ["Lexend", "Lexend"],
-    ["Andika", "Andika"],
-    ["Comic Neue", "Comic Neue"],
-    ["Quicksand", "Quicksand"]
+    ["Andika", "Andika"]
   ];
   var MODE_OPTIONS = ["travail", "silence", "equipe", "lecture", "creativite", "concentration", "jeu", "pause"];
   var MODE_TEXT_LABELS = {
@@ -1537,7 +1554,7 @@ function boot(initialData) {
     var root = document.documentElement.style;
     if (theme.accent) root.setProperty("--accent", theme.accent); else root.removeProperty("--accent");
     if (theme.pause) root.setProperty("--pause-accent", theme.pause); else root.removeProperty("--pause-accent");
-    if (theme.font) root.setProperty("--font-family-body", "'" + theme.font + "'"); else root.removeProperty("--font-family-body");
+    if (theme.font && FONT_OPTIONS.some(function (o) { return o[0] === theme.font; })) root.setProperty("--font-family-body", "'" + theme.font + "'"); else root.removeProperty("--font-family-body");
   }
 
   /* manual light/dark override — "system" follows the OS/browser preference (the default) */
@@ -1687,6 +1704,7 @@ function boot(initialData) {
     '<div class="page">' +
       '<header>' +
         '<div class="heading">' +
+          '<div class="pl-id"><span class="pl-name"><svg class="pl-mark" viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="80" r="76"/><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M56,114 C55,100 58,86 56,70 C55,58 57,50 56,48 C64,46 78,45 80,58 C82,70 70,76 56,76"/><path d="M100,48 C99,64 101,86 100,100 C99,108 101,112 100,112 L128,111"/></g></svg>PL-planif’</span><a class="pl-back" href="https://7nel.github.io/PL/" aria-label="Retour à PL, tous les outils"><span aria-hidden="true">←</span> PL</a></div>' +
           '<span class="eyebrow" id="eyebrow-count"></span>' +
           '<div class="progress-track" id="progress-track" hidden><div class="progress-fill" id="progress-fill"></div></div>' +
           '<h1 id="app-title" contenteditable="true" spellcheck="false" title="Cliquez pour renommer"></h1>' +
