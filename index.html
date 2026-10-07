@@ -71,13 +71,16 @@ function boot(initialData) {
     /* identité commune à la famille PL : monogramme, nom de l'outil, retour vers PL */
     .pl-id { display: flex; align-items: center; gap: 6px 14px; min-width: 0; flex-wrap: wrap; }
     .pl-name { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.1rem; line-height: 1.2; }
+    .pl-logo{position:relative;display:inline-flex;flex:none;border-radius:50%;line-height:0}
+    .pl-logo::after{content:"";position:absolute;inset:-8px}
+    .pl-logo:hover .pl-mark{transform:scale(1.08)}
+    .pl-mark{transition:transform .15s ease}
+    .pl-title{color:inherit;text-decoration:none}
+    .pl-title:hover{text-decoration:underline;text-underline-offset:4px}
+    .pl-logo:focus-visible,.pl-title:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
     .pl-mark { width: 1.45em; height: 1.45em; flex: none; }
     .pl-mark circle { fill: var(--accent); }
     .pl-mark g { stroke: var(--bg); }
-    .pl-back { position: relative; color: var(--muted); font-weight: 700; font-size: 0.95rem; text-decoration: none; white-space: nowrap; }
-    .pl-back::after { content: ""; position: absolute; inset: -12px -8px; }
-    .pl-back:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-    .pl-back:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
     .heading { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
     .eyebrow { font-weight: 700; font-size: 0.9rem; color: var(--muted); }
     .progress-track {
@@ -1704,7 +1707,7 @@ function boot(initialData) {
     '<div class="page">' +
       '<header>' +
         '<div class="heading">' +
-          '<div class="pl-id"><span class="pl-name"><svg class="pl-mark" viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="80" r="76"/><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M56,114 C55,100 58,86 56,70 C55,58 57,50 56,48 C64,46 78,45 80,58 C82,70 70,76 56,76"/><path d="M100,48 C99,64 101,86 100,100 C99,108 101,112 100,112 L128,111"/></g></svg>PL-planif’</span><a class="pl-back" href="https://7nel.github.io/PL/" aria-label="Retour à PL, tous les outils"><span aria-hidden="true">←</span> PL</a></div>' +
+          '<div class="pl-id"><a class="pl-logo" href="https://7nel.github.io/PL/" aria-label="Retour à PL, tous les outils" title="Retour à PL"><svg class="pl-mark" viewBox="0 0 160 160" aria-hidden="true"><circle cx="80" cy="80" r="76"/><g fill="none" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M56,114 C55,100 58,86 56,70 C55,58 57,50 56,48 C64,46 78,45 80,58 C82,70 70,76 56,76"/><path d="M100,48 C99,64 101,86 100,100 C99,108 101,112 100,112 L128,111"/></g></svg></a><a class="pl-name pl-title" id="pl-home" href="./">PL-planif’</a></div>' +
           '<span class="eyebrow" id="eyebrow-count"></span>' +
           '<div class="progress-track" id="progress-track" hidden><div class="progress-fill" id="progress-fill"></div></div>' +
           '<h1 id="app-title" contenteditable="true" spellcheck="false" title="Cliquez pour renommer"></h1>' +
@@ -2967,6 +2970,8 @@ function boot(initialData) {
     }
   });
   btnHome.addEventListener("click", function () { guardEditorExit(goHome); });
+  var plHome = document.getElementById("pl-home");
+  if (plHome) plHome.addEventListener("click", function (e) { if (e.metaKey || e.ctrlKey || e.shiftKey) return; e.preventDefault(); guardEditorExit(goHome); });
   btnTheme.addEventListener("click", cycleThemeMode);
   applyThemeMode(loadThemeMode());
   function applyTransitionSoundIcon() {
