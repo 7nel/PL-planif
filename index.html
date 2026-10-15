@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="fr"><head><meta charset='utf-8'><meta name="viewport" content="width=device-width, initial-scale=1"><title>PL-planif’</title><meta name="theme-color" content="#2f6f63"><link rel="manifest" href="manifest.json"><link rel="icon" type="image/png" sizes="32x32" href="icon-32.png"><link rel="apple-touch-icon" href="icon-180.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="PL-planif’"></head><body><script>
+<!DOCTYPE html><html lang="fr"><head><meta charset='utf-8'><meta name="viewport" content="width=device-width, initial-scale=1"><title>PL-planif’</title><meta name="theme-color" content="#f4f0e8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e2220" media="(prefers-color-scheme: dark)"><link rel="manifest" href="manifest.json"><link rel="icon" type="image/png" sizes="32x32" href="icon-32.png"><link rel="apple-touch-icon" href="icon-180.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="PL-planif’"></head><body><script>
 function boot(initialData) {
   "use strict";
 
@@ -11,11 +12,11 @@ function boot(initialData) {
     @font-face { font-family: "Andika"; font-style: normal; font-weight: 400 700; font-display: swap; src: url(fonts/andika-400.woff2) format("woff2"); }
 
     :root {
-      --bg: #eff2f0;
-      --surface: #ffffff;
-      --surface-alt: #e4e9e6;
+      --bg: #f4f0e8;
+      --surface: #fffdf9;
+      --surface-alt: #e9e4d9;
       --ink: #253433;
-      --muted: #5b6c6a;
+      --muted: #52635f;
       --accent: #2f6f63;
       --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface));
       --pause-accent: #b97a3d;
@@ -26,26 +27,26 @@ function boot(initialData) {
       --accent-strong: color-mix(in srgb, var(--accent) 65%, var(--ink));
       --pause-text: color-mix(in srgb, var(--pause-accent) 60%, var(--ink));
       --pause-fill: color-mix(in srgb, var(--pause-accent) 38%, transparent); /* remplissage de la jauge d'une étape « Pause » */
-      --red: #b6503f;
-      --red-soft: color-mix(in srgb, var(--red) 20%, var(--surface));
-      --border: #d7ddda;
+      --red: #a03a2a;
+      --red-soft: color-mix(in srgb, var(--red) 14%, var(--surface));
+      --border: #dcd6c8; --line-ctl:#7a8077;
       --shadow: 0 1px 2px rgba(37, 52, 51, 0.06), 0 10px 24px rgba(37, 52, 51, 0.08);
       --font-family-body: 'Atkinson Hyperlegible';
     }
     @media (prefers-color-scheme: dark) {
       :root:not([data-theme="light"]) {
-        --bg: #182422; --surface: #202f2c; --surface-alt: #24322f; --ink: #eaf1ee;
-        --muted: #9fb0ac; --accent: #6fbfae;
-        --pause-accent: #e3a768; --red: #d98070; --border: #33443f;
+        --bg: #1e2220; --surface: #282d2a; --surface-alt: #2d332f; --ink: #f0ede6;
+        --muted: #b3b6ab; --accent: #6fbfae;
+        --pause-accent: #e3a768; --red: #eb9b8b; --border: #3b423d; --line-ctl:#778179;
         --pause-strong: var(--pause-accent);
         --pause-fill: color-mix(in srgb, var(--pause-accent) 30%, transparent); /* plus léger en sombre : à 38 %, le petit texte clair tombait à 4,3:1 sur la zone remplie */
         --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 28px rgba(0,0,0,0.35);
       }
     }
     :root[data-theme="dark"] {
-      --bg: #182422; --surface: #202f2c; --surface-alt: #24322f; --ink: #eaf1ee;
-      --muted: #9fb0ac; --accent: #6fbfae;
-      --pause-accent: #e3a768; --red: #d98070; --border: #33443f;
+      --bg: #1e2220; --surface: #282d2a; --surface-alt: #2d332f; --ink: #f0ede6;
+      --muted: #b3b6ab; --accent: #6fbfae;
+      --pause-accent: #e3a768; --red: #eb9b8b; --border: #3b423d; --line-ctl:#778179;
       --pause-strong: var(--pause-accent);
       --pause-fill: color-mix(in srgb, var(--pause-accent) 30%, transparent);
       --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 12px 28px rgba(0,0,0,0.35);
@@ -211,10 +212,10 @@ function boot(initialData) {
 
     .active-actions { display: flex; gap: 6px; flex-wrap: wrap; }
     .jump-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 0.9rem; }
-    .jump-row input[type="number"] { width: 56px; font: inherit; padding: 4px 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--ink); }
+    .jump-row input[type="number"] { width: 56px; font: inherit; padding: 4px 6px; border: 1px solid var(--line-ctl); border-radius: 8px; background: var(--surface); color: var(--ink); }
     .action-btn {
       display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
-      border: 1px solid var(--border); background: var(--surface-alt); color: var(--ink);
+      border: 1px solid var(--line-ctl); background: var(--surface-alt); color: var(--ink);
       font-family: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer;
     }
     .action-btn.primary { background: var(--accent); color: var(--surface); border-color: transparent; }
@@ -321,26 +322,26 @@ function boot(initialData) {
     .appearance-row { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; }
     .field { display: flex; flex-direction: column; gap: 5px; font-size: 0.9rem; color: var(--muted); font-weight: 700; }
     .field input[type="color"] {
-      width: 48px; height: 38px; padding: 3px; border-radius: 10px; border: 1px solid var(--border);
+      width: 48px; height: 38px; padding: 3px; border-radius: 10px; border: 1px solid var(--line-ctl);
       background: var(--surface); cursor: pointer;
     }
-    .field select { font: inherit; font-weight: 700; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--ink); min-width: 190px; }
+    .field select { font: inherit; font-weight: 700; padding: 8px 10px; border: 1px solid var(--line-ctl); border-radius: 10px; background: var(--surface); color: var(--ink); min-width: 190px; }
     .appearance-reset {
       border: none; background: none; color: var(--muted); font: inherit; font-size: 0.9rem; font-weight: 700;
       text-decoration: underline; cursor: pointer; padding: 0;
     }
     .text-input {
-      font: inherit; font-weight: 700; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px;
+      font: inherit; font-weight: 700; padding: 10px 12px; border: 1px solid var(--line-ctl); border-radius: 10px;
       background: var(--surface); color: var(--ink);
     }
     textarea.text-input { font-weight: 400; resize: vertical; }
     input::placeholder, textarea::placeholder { color: var(--muted); opacity: 1; } /* ≥ 4,5:1 : le gris par défaut du navigateur tombait à 3:1 en sombre */
 
     .editor-rows { display: flex; flex-direction: column; gap: 10px; }
-    .editor-row { display: flex; flex-direction: column; gap: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; }
+    .editor-row { display: flex; flex-direction: column; gap: 10px; background: var(--bg); border: 1px solid var(--line-ctl); border-radius: 14px; padding: 10px 12px; }
     .editor-row-main { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .editor-row select, .editor-row input[type="text"], .editor-row input[type="number"] {
-      font: inherit; font-weight: 700; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px;
+      font: inherit; font-weight: 700; padding: 8px 10px; border: 1px solid var(--line-ctl); border-radius: 10px;
       background: var(--surface); color: var(--ink);
     }
     .editor-row input[type="text"] { flex: 1; min-width: 140px; }
@@ -358,7 +359,7 @@ function boot(initialData) {
     .row-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
     .tasks-toggle {
       align-self: flex-start; display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px;
-      border: 1px solid var(--border); background: var(--surface); color: var(--muted); font: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer;
+      border: 1px solid var(--line-ctl); background: var(--surface); color: var(--muted); font: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer;
     }
     .tasks-toggle svg { width: 15px; height: 15px; }
     .tasks-toggle.has-tasks { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
@@ -367,13 +368,13 @@ function boot(initialData) {
     .hw-extra-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .hw-extra-row input.hw-extra-text { flex: 1; min-width: 160px; }
     .hw-extra-row input[type="date"] {
-      font: inherit; font-weight: 700; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px;
+      font: inherit; font-weight: 700; padding: 6px 8px; border: 1px solid var(--line-ctl); border-radius: 8px;
       background: var(--surface); color: var(--ink);
     }
     .task-row input.task-name { width: 130px; }
     .task-row input.task-text { flex: 1; min-width: 160px; }
     .task-row input[type="date"] {
-      font: inherit; font-weight: 700; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px;
+      font: inherit; font-weight: 700; padding: 6px 8px; border: 1px solid var(--line-ctl); border-radius: 8px;
       background: var(--surface); color: var(--ink);
     }
     .add-task-btn {
@@ -455,7 +456,7 @@ function boot(initialData) {
     .hint-row { display: flex; align-items: center; gap: 8px; }
     .hint-row .editor-hint { margin: 0; }
     .help-toggle {
-      flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border);
+      flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--line-ctl);
       background: var(--surface-alt); color: var(--muted); font: inherit; font-weight: 700; font-size: 0.9rem;
       display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; line-height: 1;
     }
@@ -818,14 +819,14 @@ function boot(initialData) {
     .group-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .group-row .group-label { flex: 1; min-width: 140px; }
     .group-row input.group-choose {
-      font: inherit; font-weight: 700; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px;
+      font: inherit; font-weight: 700; padding: 6px 8px; border: 1px solid var(--line-ctl); border-radius: 8px;
       background: var(--surface); color: var(--ink);
     }
     .group-row .group-count { color: var(--muted); font-size: 0.9rem; white-space: nowrap; }
 
     /* éditeur des blocs personnalisés de la vue projetée ("Blocs personnalisés") — même esprit
        que .editor-row / .groups-editor ci-dessus : un bloc par carte, ses outils en dessous */
-    .custom-block-editor-row { display: flex; flex-direction: column; gap: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; }
+    .custom-block-editor-row { display: flex; flex-direction: column; gap: 8px; background: var(--bg); border: 1px solid var(--line-ctl); border-radius: 14px; padding: 10px 12px; }
     .custom-block-editor-row .custom-block-name { flex: 1; min-width: 160px; }
     .custom-block-tools-editor { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px dashed var(--border); }
     .custom-block-tool-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -838,11 +839,11 @@ function boot(initialData) {
     .custom-block-tool.custom-block-timer .countdown { font-size: clamp(1.3rem, 4.5vh, 2.4rem); }
     .custom-block-tool.custom-block-studenttasks { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
     .task-row select.task-group {
-      font: inherit; font-weight: 700; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px;
+      font: inherit; font-weight: 700; padding: 6px 8px; border: 1px solid var(--line-ctl); border-radius: 8px;
       background: var(--surface); color: var(--ink); max-width: 190px;
     }
     .task-row select.task-students {
-      font: inherit; font-weight: 700; padding: 4px 8px; border: 1px solid var(--border); border-radius: 8px;
+      font: inherit; font-weight: 700; padding: 4px 8px; border: 1px solid var(--line-ctl); border-radius: 8px;
       background: var(--surface); color: var(--ink); max-width: 170px; min-height: 46px;
     }
 
@@ -933,7 +934,7 @@ function boot(initialData) {
       if (icon512) icons.push({ src: icon512, sizes: "512x512", type: "image/png", purpose: "any maskable" });
       var manifest = {
         name: "PL-planif’", short_name: "PL-planif’", start_url: ".", scope: ".",
-        display: "standalone", background_color: "#eff2f0", theme_color: "#2f6f63", icons: icons
+        display: "standalone", background_color: "#f4f0e8", theme_color: "#2f6f63", icons: icons
       };
       var manifestUrl = "data:application/manifest+json," + encodeURIComponent(JSON.stringify(manifest));
       var link = document.createElement("link");

@@ -100,11 +100,24 @@ Test manuel = ouvrir la page dans un navigateur et exercer la fonctionnalité mo
 - **`localStorage`** : toujours `try { … } catch (e) {}` (navigation privée, quota, `file://`). Lecture avec valeur par défaut ; jamais de plantage si la clé manque ou est corrompue (`JSON.parse` protégé).
 - **Rétrocompatibilité des données** : toute nouvelle propriété de profil doit avoir une valeur par défaut à la lecture/import (les anciennes sauvegardes n'ont pas le champ). Ne jamais renommer ni changer le sens d'une clé `localStorage` ou d'un champ exporté sans migration.
 - **Nouvel état persistant** : ajouter une constante `*_KEY` dans la section « local state » avec le préfixe `apres-midi-`, et une paire `load…/save…` protégée par `try/catch`.
-- **CSS** : utiliser les variables (`--bg`, `--surface`, `--ink`, `--muted`, `--accent`, `--pause-accent`, `--red`, `--border`…) ; toute nouvelle couleur doit fonctionner en **clair et sombre** (définir les deux). Attention à la règle `[hidden] { display:none !important }`.
+- **CSS** : utiliser les variables (`--bg`, `--surface`, `--ink`, `--muted`, `--accent`, `--pause-accent`, `--red`, `--border`…) ; toute nouvelle couleur doit fonctionner en **clair et sombre** (définir les deux). Attention à la règle `[hidden] { display:none !important }`. Les noms et les valeurs de référence sont ceux de la charte commune (v2.2, fond chaud) ; les écarts de ce projet sont dans « Écarts assumés » ci-dessous. Les contours de champs et de boutons secondaires prennent `--line-ctl` (charte), pas `--border`. Le jaune `--mark` est réservé aux repères qui sautent aux yeux (un seul par écran, texte en `--mark-ink`) : aucun usage dans cet outil à ce jour.
 - **Rendu** : la boucle de 250 ms appelle `render(false)` ; `render(true)` reconstruit la structure. Ne pas alourdir la boucle ; ne pas reconstruire le DOM à chaque tick (perte de focus dans les champs).
 - **Commentaires** : en français, expliquant le *pourquoi* (le fichier en contient de longs et utiles — les conserver et les mettre à jour).
 - **Textes d'interface** : français, tutoiement/vouvoiement comme l'existant (vouvoiement dans l'aide), apostrophe typographique `’` dans le nom **PL-planif’** (unifiée dans le commit `71bd1c7`). Le guide intégré (`HELP_GUIDE_HTML`, bouton « ? ») doit être mis à jour quand une fonctionnalité visible change.
 - **Accessibilité** : public incluant des élèves à besoins spécifiques — polices lisibles (Atkinson, Lexend, Andika), bons contrastes, cibles tactiles larges, vue projetée lisible de loin. Ne pas dégrader.
+
+## Écarts assumés avec la charte commune
+
+État au 2026-10-15 : la palette de la charte v2.2 (fond chaud `#f4f0e8`, sombre `#1e2220`) n'est pas encore appliquée à ce dépôt. Le code porte encore l'ancienne palette ; ces écarts valent jusqu'à l'application, qui se décide à part.
+
+| Variable | Valeur dans le code | Équivalent charte | Raison, suite |
+|---|---|---|---|
+| `--muted` | `#5b6c6a` (clair), `#9fb0ac` (sombre) | `--ink-2` `#52635f` (clair), `#b3b6ab` (sombre) | Ancien nom. À migrer avec la palette. |
+| `--border` | `#d7ddda` (clair), `#33443f` (sombre) | `--line` `#dcd6c8`, `--line-strong`, et `--line-ctl` pour les contrôles | Ancien nom. À migrer avec la palette. |
+| `--red`, `--red-soft` | `#b6503f` (clair), `#d98070` (sombre) ; mélange de 20 % | `--danger` `#a03a2a` (clair), `#eb9b8b` (sombre) ; mélange de 14 % | Ancien nom et ancienne valeur. `#b6503f` ne tient que 3,94:1 sur `--surface-2` : à aligner à l'application. |
+| `--pause-accent` | `#b97a3d` (clair), `#e3a768` (sombre) | aucun | Teinte « pause » du thème d'un profil, réglable par l'enseignant·e. Sur le fond chaud clair, `#b97a3d` fait 3,12:1 : à ne pas utiliser pour du texte courant ; usages actuels à vérifier à l'application. |
+
+Les valeurs de contraste de ce tableau sont calculées par formule, pas mesurées avec un outil tiers.
 
 ## Règles de travail pour Claude
 
@@ -125,7 +138,7 @@ Test manuel = ouvrir la page dans un navigateur et exercer la fonctionnalité mo
 - [ ] Syntaxe JS valide (commande `jsc`)
 - [ ] La page s'ouvre sans erreur dans la console (`file://` inclus)
 - [ ] Création / ouverture d'un profil, ajout d'étapes, lancement du minuteur
-- [ ] Vue projetée OK ; thème clair et sombre OK
+- [ ] Vue projetée OK ; thème clair et sombre OK ; contrastes du texte ≥ 4,5:1 et des contours de contrôle ≥ 3:1 (voir la charte)
 - [ ] Rechargement de la page : les données persistent
 - [ ] Export puis import d'une sauvegarde `.json` OK (anciennes sauvegardes comprises)
 - [ ] Aide intégrée et README à jour si nécessaire
