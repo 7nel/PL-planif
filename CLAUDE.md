@@ -108,14 +108,14 @@ Test manuel = ouvrir la page dans un navigateur et exercer la fonctionnalité mo
 
 ## Écarts assumés avec la charte commune
 
-État au 2026-10-15 : la palette de la charte v2.2 (fond chaud `#f4f0e8`, sombre `#1e2220`) n'est pas encore appliquée à ce dépôt. Le code porte encore l'ancienne palette ; ces écarts valent jusqu'à l'application, qui se décide à part.
+État au 2026-10-15 : la palette de la charte v2.2 (fond chaud `#f4f0e8`, sombre `#1e2220`) est appliquée dans le code. Les contours de boutons secondaires, de champs et de cases utilisent `--line-ctl` ; `--border` ne sert plus qu'aux séparateurs et aux bordures de cartes. Restent les anciens noms de variables, déclarés ici.
 
 | Variable | Valeur dans le code | Équivalent charte | Raison, suite |
 |---|---|---|---|
-| `--muted` | `#5b6c6a` (clair), `#9fb0ac` (sombre) | `--ink-2` `#52635f` (clair), `#b3b6ab` (sombre) | Ancien nom. À migrer avec la palette. |
-| `--border` | `#d7ddda` (clair), `#33443f` (sombre) | `--line` `#dcd6c8`, `--line-strong`, et `--line-ctl` pour les contrôles | Ancien nom. À migrer avec la palette. |
-| `--red`, `--red-soft` | `#b6503f` (clair), `#d98070` (sombre) ; mélange de 20 % | `--danger` `#a03a2a` (clair), `#eb9b8b` (sombre) ; mélange de 14 % | Ancien nom et ancienne valeur. `#b6503f` ne tient que 3,94:1 sur `--surface-2` : à aligner à l'application. |
-| `--pause-accent` | `#b97a3d` (clair), `#e3a768` (sombre) | aucun | Teinte « pause » du thème d'un profil, réglable par l'enseignant·e. Sur le fond chaud clair, `#b97a3d` fait 3,12:1 : à ne pas utiliser pour du texte courant ; usages actuels à vérifier à l'application. |
+| `--muted` | `#52635f` (clair), `#b3b6ab` (sombre) | `--ink-2` (mêmes valeurs) | Ancien nom gardé, sans migration tant que Pauline ne la demande pas. |
+| `--border` | `#dcd6c8` (clair), `#3b423d` (sombre) | `--line` (mêmes valeurs) | Ancien nom gardé. Séparateurs et cartes seulement. |
+| `--red`, `--red-soft` | `#a03a2a` (clair), `#eb9b8b` (sombre) ; mélange de 14 % | `--danger` (mêmes valeurs) | Ancien nom gardé. |
+| `--pause-accent` | `#b97a3d` (clair), `#e3a768` (sombre) | aucun | Teinte « pause » du thème d'un profil, réglable par l'enseignant·e. Sur le fond chaud clair, `#b97a3d` fait 3,12:1 : à ne pas utiliser pour du texte courant. |
 
 Les valeurs de contraste de ce tableau sont calculées par formule, pas mesurées avec un outil tiers.
 
