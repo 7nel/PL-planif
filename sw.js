@@ -11,7 +11,7 @@ self.addEventListener("install", e => {
 
 self.addEventListener("activate", e => {
   e.waitUntil((async () => {
-    for (const k of await caches.keys()) if (k !== CACHE) await caches.delete(k);
+    for (const k of await caches.keys()) if (k.indexOf("plplanif-") === 0 && k !== CACHE) await caches.delete(k);
     await self.clients.claim();
   })());
 });
